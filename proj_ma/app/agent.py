@@ -33,7 +33,7 @@ from app.mock_data import MOCK_JIRA_PROJECTS, MOCK_JIRA_ISSUES, MOCK_TEAM_MEMBER
 
 _, project_id = google.auth.default()
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+os.environ["GOOGLE_CLOUD_LOCATION"] = "us"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
@@ -329,7 +329,7 @@ Key milestones with dates, sprint targets.
 root_agent = Agent(
     name="project_management_agent",
     model=Gemini(
-        model="gemini-2.0-flash-001",
+        model="gemini-3.5-flash",
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
     instruction=SYSTEM_PROMPT,

@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+
+# tsc -b build cache / emitted output for the (composite) node tsconfig project
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

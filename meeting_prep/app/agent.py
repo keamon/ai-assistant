@@ -39,7 +39,7 @@ from app.mock_data import (
 
 _, project_id = google.auth.default()
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+os.environ["GOOGLE_CLOUD_LOCATION"] = "us"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 EASTERN = ZoneInfo("America/New_York")
@@ -346,7 +346,7 @@ Tone: Executive-ready, specific, data-driven. No filler.
 root_agent = Agent(
     name="meeting_prep_agent",
     model=Gemini(
-        model="gemini-2.0-flash-001",
+        model="gemini-3.5-flash",
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
     instruction=SYSTEM_PROMPT,

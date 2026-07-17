@@ -1,0 +1,75 @@
+/* Jira-flavored styling (approximation of Jira Cloud). */
+.jira {
+  --j-blue: #0c66e4;
+  --j-blue-d: #0052cc;
+  --j-bg: #ffffff;
+  --j-col: #f1f2f4;
+  --j-line: #dcdfe4;
+  --j-ink: #172b4d;
+  --j-sub: #626f86;
+  min-height: 100vh;
+  background: var(--j-bg);
+  color: var(--j-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.jira-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--j-line);
+  background: #fff;
+}
+.jira-logo { font-weight: 800; color: var(--j-blue-d); display: flex; align-items: center; gap: 6px; font-size: 17px; }
+.jira-logo-mark { color: var(--j-blue); }
+.jira-top-nav { color: var(--j-ink); font-size: 14px; font-weight: 500; }
+.jira-search {
+  margin-left: 8px; border: 1px solid var(--j-line); border-radius: 6px; padding: 6px 12px;
+  color: var(--j-sub); font-size: 13px; width: 220px;
+}
+.jira-top-spacer { flex: 1; }
+.jira-avatar {
+  width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.jira-avatar.sm { width: 28px; height: 28px; margin-left: -6px; border: 2px solid #fff; }
+.jira-avatar.xs { width: 22px; height: 22px; font-size: 9px; }
+
+.jira-shell { display: flex; min-height: calc(100vh - 48px); }
+
+.jira-side { width: 240px; border-right: 1px solid var(--j-line); padding: 14px 10px; background: #fff; }
+.jira-proj { display: flex; gap: 10px; align-items: center; padding: 8px; margin-bottom: 10px; }
+.jira-proj-ava { width: 34px; height: 34px; border-radius: 6px; background: linear-gradient(135deg, #0052cc, #2684ff); color: #fff; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+.jira-proj-name { font-weight: 700; font-size: 14px; }
+.jira-proj-type { font-size: 12px; color: var(--j-sub); }
+.jira-nav { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; font-size: 14px; color: var(--j-ink); cursor: default; }
+.jira-nav:hover { background: #f1f2f4; }
+.jira-nav.active { background: #e9f2ff; color: var(--j-blue-d); font-weight: 600; }
+.jira-nav-ico { width: 18px; text-align: center; }
+
+.jira-main { flex: 1; padding: 16px 22px; background: #fff; overflow: auto; }
+.jira-crumb { font-size: 12.5px; color: var(--j-sub); margin-bottom: 4px; }
+.jira-board-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.jira-board-head h1 { font-size: 24px; font-weight: 700; }
+.jira-avatars { display: flex; }
+
+.jira-columns { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+.jira-col { background: var(--j-col); border-radius: 6px; padding: 8px; }
+.jira-col-head { font-size: 12px; font-weight: 700; color: var(--j-sub); letter-spacing: 0.04em; padding: 8px 8px 10px; display: flex; align-items: center; gap: 8px; }
+.jira-col-count { background: #dcdfe4; color: var(--j-sub); border-radius: 999px; padding: 0 7px; font-size: 11px; }
+.jira-col-body { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+
+.jira-card { background: #fff; border-radius: 6px; padding: 11px 12px; box-shadow: 0 1px 1px rgba(9,30,66,0.13), 0 0 1px rgba(9,30,66,0.16); cursor: pointer; }
+.jira-card:hover { background: #f7f8f9; }
+.jira-card.fresh { box-shadow: 0 0 0 2px var(--j-blue); animation: jira-pop 0.4s ease; }
+@keyframes jira-pop { from { transform: scale(0.97); } to { transform: scale(1); } }
+.jira-card-title { font-size: 14px; line-height: 1.35; margin-bottom: 12px; }
+.jira-card-foot { display: flex; align-items: center; gap: 8px; }
+.jira-type { font-size: 13px; }
+.jira-key { font-size: 12.5px; color: var(--j-sub); font-weight: 600; }
+.jira-prio { font-size: 12px; }
+.jira-spacer { flex: 1; }
+.jira-points { background: #dcdfe4; color: #44546f; border-radius: 999px; min-width: 20px; height: 20px; padding: 0 6px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.jira-empty { height: 8px; }
