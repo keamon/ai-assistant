@@ -8,19 +8,8 @@
 **/*.pyc
 **/.pytest_cache
 
-# Everything needed for the Cloud Run build lives in webapp/ + the one mock_data.py file
-# (see Dockerfile); the other agent folders aren't part of this image.
-daily_briefing/*
-!daily_briefing/app
-daily_briefing/app/*
-!daily_briefing/app/mock_data.py
-meeting_room/
-meeting_prep/
-proj_ma/
-rfp/
-sales/
-
-webapp/frontend/dist
-webapp/backend/static
+# The deployable surface is frontend/ + backend/ (see Dockerfile); build artifacts are rebuilt in-image.
+frontend/dist
+backend/static
 
 *.md

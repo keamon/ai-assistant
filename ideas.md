@@ -4,6 +4,11 @@
 > which feeds the spec (`spec.md`), which feeds stories, which feed code.
 > Date: 2026-07-16
 
+> 📦 Scope note (2026-07-25): the repo now ships only the concierge web app (`backend/` +
+> `frontend/`); the 6 standalone agents referenced below were removed from source, but this
+> brainstorm is kept intact as the original vision. Their capabilities live on in the
+> concierge agent.
+
 ---
 
 ## 1. Vision

@@ -5,9 +5,16 @@ behavior; follow them exactly.
 
 ## What this repo is
 
-The **SSIM Employee Digital Assistant**: a set of Google ADK agents for State Street
-Investment Management (~$4.1T AUM, institutional) plus a concierge web app that unifies them.
-See the doc chain below for the full picture.
+The **SSIM Employee Digital Assistant**: a concierge web app for State Street Investment
+Management (a digital payments company with a commercial banking division — ~$4.1T annual
+payment volume). It's a FastAPI backend running an in-process Google ADK **concierge agent**
+plus a React frontend.
+
+> 📦 The project began as **6 standalone ADK agents** (daily briefing, meeting prep, meeting
+> rooms, project management, RFP, sales) unified by the web app. Those agents were **removed
+> from source** once the concierge agent reproduced their user-facing capabilities; their
+> design/vision is retained in the doc chain below (`prd.md` / `spec.md`). The repo now ships
+> only `backend/` + `frontend/`.
 
 ## 🔴 Golden rule: keep docs in sync with code
 
@@ -35,25 +42,30 @@ ideas.md (brainstorm) → prd.md (product requirements) → spec.md (technical s
 ## Repository layout
 
 ```
-daily_briefing/ meeting_prep/ meeting_room/ proj_ma/ rfp/ sales/   # 6 ADK agents (deployable)
-  app/{agent.py, mock_data.py, agent_engine_app.py, app_utils/}  tests/  pyproject.toml
-webapp/
-  backend/  server/{main,agent,tools,logic,store,seed}.py         # FastAPI + concierge agent
-  frontend/ src/{App,api,types}.tsx  src/{tabs,components,hooks}   # React + Vite + TS (4 tabs)
+backend/   server/{main,agent,tools,logic,store,seed,mock_data,llm}.py  # FastAPI + concierge agent + seed/mock data
+  tests/  pyproject.toml
+frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks}    # React + Vite + TS (4 tabs)
 ```
+
+(The 6 standalone ADK agent folders were removed — see "What this repo is" above.)
 
 ## Conventions (match existing code exactly)
 
-- **Agents:** each folder is self-contained and independently deployable. Tools are plain
-  functions returning **JSON strings** with a `try:` real-Google-API path and an `except:`
-  mock fallback tagged `"source": "mock"`. Expose `root_agent = Agent(...)` and
-  `app = App(root_agent=..., name=...)`.
+- **Concierge agent:** the backend exposes one ADK agent (`backend/server/agent.py`) whose
+  tools (`server/tools.py`) are plain functions returning **JSON strings**, delegating to pure
+  functions in `server/logic.py` over a shared in-process `Store` (`server/store.py`). Chat and
+  read-endpoint paths call the same logic so they behave identically.
 - **System prompts:** Markdown, and use `[Variable]` placeholders — never `{Variable}` (ADK
   reads `{...}` as session-state lookups).
 - **Write actions** (schedule/book/create Jira/log Salesforce): confirm before writing.
-- **File headers:** keep the `# ruff: noqa` + Apache license header on agent files.
-- **Domain mock data has a single source of truth:** `daily_briefing/app/mock_data.py`. The
-  webapp backend loads it (via `server/seed.py`); don't fork it — extend it there.
+- **File headers:** keep the Apache license header on backend files that already carry it.
+- **Domain mock data has a single source of truth:** `backend/server/mock_data.py` (imports
+  only `datetime`). `server/seed.py` imports it, deep-copies it, and adds demo-only Jira /
+  Salesforce state; don't fork the domain data — extend it in `mock_data.py`.
+- *(Historical, for reference:)* the removed standalone agents were each self-contained and
+  independently deployable, exposing `root_agent = Agent(...)` / `app = App(...)` with the same
+  JSON-string + `try:`/`except:` mock-fallback (`"source": "mock"`) tool pattern the concierge
+  agent still follows.
 
 ## Model / Vertex config (important)
 
@@ -65,22 +77,22 @@ webapp/
 
 ## Run it locally
 
-- **An agent in isolation:** `cd <agent> && agents-cli install && agents-cli dev`.
-- **Web app:** backend `cd webapp/backend && uv run uvicorn server.main:app --reload --port 8000`;
-  frontend `cd webapp/frontend && npm install && npm run dev` → http://localhost:5173
+- **Web app:** backend `cd backend && uv run uvicorn server.main:app --reload --port 8000`;
+  frontend `cd frontend && npm install && npm run dev` → http://localhost:5173
   (Vite proxies `/api` → :8000). Chat needs Vertex ADC; read endpoints don't.
 
 ## Testing
 
-- Agents: `agents-cli test` (unit + integration in `tests/`); `agents-cli eval` for evalsets.
 - Frontend: `npm run build` (tsc + vite) is the smoke gate.
+- Backend has no unit-test suite yet (backlog); verify by driving the live API
+  (`uvicorn` + `curl /api/health`, `/api/reset`, `/api/briefing`).
 - Verify runtime behavior end-to-end (drive the flow), not just imports, for nontrivial changes.
 
 ## Deployment (approval-gated)
 
-Never deploy without explicit user approval. Agents → Agent Engine via `agents-cli deploy`
-(run in the agent folder). Web app → Cloud Run (see `spec.md` §11). Existing agents were
-deployed in `us-central1`; re-deploy after the model change.
+Never deploy without explicit user approval. Web app → Cloud Run: the root `Dockerfile`
+builds `frontend` and serves the built SPA from the FastAPI `backend` as one combined service
+(see `spec.md` §11).
 
 ## Operational notes
 
@@ -92,6 +104,6 @@ deployed in `us-central1`; re-deploy after the model change.
 
 - GitHub: [chenw-google/ai_assistant](https://github.com/chenw-google/ai_assistant) — remote
   `origin`, single branch `main`. Push here when asked to sync/push changes.
-- Every agent folder + `webapp/backend` + `webapp/frontend` has its own `.gitignore`
+- `backend` and `frontend` each have their own `.gitignore`
   (`.venv`/`node_modules`/build output); when staging new folders, add them directly rather
   than `git add -A` so those ignores are respected and nothing large or generated slips in.

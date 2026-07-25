@@ -4,5 +4,5 @@
 **/*.pyc
 **/.pytest_cache
 .git
-webapp/frontend/dist
-webapp/backend/static
+frontend/dist
+backend/static

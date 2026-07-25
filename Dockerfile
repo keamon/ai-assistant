@@ -1,25 +1,23 @@
-# Build context is the repo root: server/seed.py loads daily_briefing/app/mock_data.py by a
-# path relative to its own file (three levels up), so that relative layout must be preserved
-# inside the image alongside webapp/.
+# Build context is the repo root; the deployable surface is the frontend + backend, which is
+# fully self-contained — the backend's mock data lives in server/mock_data.py.
 
 FROM node:20-slim AS frontend-build
-WORKDIR /app/webapp/frontend
-COPY webapp/frontend/package*.json ./
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
 RUN npm ci
-COPY webapp/frontend/ ./
+COPY frontend/ ./
 RUN npm run build
 
 FROM python:3.12-slim AS backend
 RUN pip install --no-cache-dir uv
 
-WORKDIR /app/webapp/backend
-COPY webapp/backend/pyproject.toml webapp/backend/uv.lock ./
+WORKDIR /app/backend
+COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen
 
-COPY webapp/backend/server ./server
-COPY daily_briefing/app/mock_data.py /app/daily_briefing/app/mock_data.py
-COPY --from=frontend-build /app/webapp/frontend/dist ./static
+COPY backend/server ./server
+COPY --from=frontend-build /app/frontend/dist ./static
 
-ENV PATH="/app/webapp/backend/.venv/bin:${PATH}"
+ENV PATH="/app/backend/.venv/bin:${PATH}"
 EXPOSE 8080
 CMD ["sh", "-c", "uvicorn server.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
