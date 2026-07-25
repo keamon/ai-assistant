@@ -16,6 +16,20 @@ dependencies = [
 [tool.uvicorn]
 # run with: uv run uvicorn server.main:app --reload --port 8000
 
+[dependency-groups]
+# Dev/test tooling — installed by `uv sync` and used in CI (see .github/workflows/ci.yml).
+dev = [
+    "pytest>=8.0.0",
+    "httpx>=0.27.0",  # required by fastapi.testclient.TestClient
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]  # so `import server` resolves from the backend root
+addopts = "-q"
+# Tests run hermetically (no Vertex, no network) via the SSIM_DISABLE_LIVE_MARKET
+# env var set in tests/conftest.py, so the market-data layer always uses fixtures.
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

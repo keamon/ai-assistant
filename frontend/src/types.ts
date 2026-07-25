@@ -32,6 +32,77 @@ export interface Suggestion {
   meeting_type?: string;
 }
 
+export interface SecFiling {
+  form: string;
+  filed: string;
+  period?: string;
+  accession?: string;
+  primary_doc?: string;
+  url?: string;
+  summary?: string;
+}
+
+export interface StockNews {
+  headline: string;
+  source?: string;
+  date?: string;
+  url?: string;
+}
+
+export interface StockQuote {
+  price?: number;
+  change?: number;
+  change_pct?: number;
+  prev_close?: number;
+  day_low?: number;
+  day_high?: number;
+  week52_low?: number;
+  week52_high?: number;
+  volume?: number;
+  market_cap?: number;
+  pe_ratio?: number;
+}
+
+export interface StockSnapshot {
+  ticker: string;
+  company?: string;
+  exchange?: string;
+  currency?: string;
+  source?: "live" | "mock";
+  quote?: StockQuote;
+  next_earnings_date?: string;
+  news?: StockNews[];
+  error?: string;
+  public?: boolean;
+  message?: string;
+}
+
+export interface SecFilingsResult {
+  company?: string;
+  ticker?: string;
+  cik?: string;
+  source?: "live" | "mock";
+  filings: SecFiling[];
+  error?: string;
+  public?: boolean;
+  message?: string;
+}
+
+export interface PublicCompanyWatch {
+  name: string;
+  company?: string;
+  ticker: string;
+  exchange?: string;
+  currency?: string;
+  price?: number;
+  change?: number;
+  change_pct?: number;
+  next_earnings_date?: string;
+  latest_filing?: SecFiling | null;
+  headline?: string;
+  source?: string;
+}
+
 export interface Briefing {
   date: string;
   events: CalendarEvent[];
@@ -40,6 +111,7 @@ export interface Briefing {
   starred_emails: EmailItem[];
   market: any;
   suggestions: Suggestion[];
+  public_company_watch?: PublicCompanyWatch[];
   narrative?: string;
 }
 
@@ -119,6 +191,8 @@ export interface MeetingPrep {
   meeting: CalendarEvent;
   is_customer_meeting: boolean;
   customer_profile: any | null;
+  stock_snapshot?: StockSnapshot | null;
+  latest_filing?: SecFiling | null;
   recent_emails: EmailItem[];
   related_documents: RelatedDoc[];
   objective?: string;

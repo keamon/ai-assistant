@@ -48,6 +48,35 @@ def get_meeting_prep(event_id: str = "", meeting_title: str = "") -> str:
     return json.dumps(logic.meeting_prep(STORE, event_id, meeting_title), indent=2, default=str)
 
 
+# ─── Market intelligence (public-company customers) ─────────────────────────
+
+def get_sec_filings(company_or_ticker: str, form_type: str = "") -> str:
+    """Recent SEC EDGAR filings (10-K / 10-Q / 8-K) for a public customer.
+
+    Use this for a client's latest earnings report or annual/quarterly filing when
+    prepping for a meeting or renewal. Live from SEC EDGAR with a mock fallback
+    (each response carries a "source" of "live" or "mock").
+
+    Args:
+        company_or_ticker: Customer name or ticker (e.g. "Williams-Sonoma", "WSM", "Etsy").
+        form_type: Optional filter — "10-K", "10-Q", or "8-K". Omit for the latest of each.
+    """
+    return json.dumps(logic.sec_filings(STORE, company_or_ticker, form_type), indent=2, default=str)
+
+
+def get_stock_snapshot(company_or_ticker: str) -> str:
+    """Live stock quote, price move, next earnings date, and headlines for a public customer.
+
+    Use this for market context on a client (share price, upcoming earnings, recent news)
+    ahead of a meeting. Live from Yahoo Finance with a mock fallback (each response carries
+    a "source" of "live" or "mock").
+
+    Args:
+        company_or_ticker: Customer name or ticker (e.g. "Dave", "DAVE", "Etsy").
+    """
+    return json.dumps(logic.stock_snapshot(STORE, company_or_ticker), indent=2, default=str)
+
+
 # ─── Rooms ──────────────────────────────────────────────────────────────────
 
 def list_available_rooms(date: str, start_time: str, end_time: str,
@@ -144,7 +173,7 @@ def log_salesforce_activity(account: str, activity_type: str, summary: str) -> s
     """Log a Salesforce activity against an account (WRITE — confirm first). Updates the CRM.
 
     Args:
-        account: Account name (e.g. "Northwind Retail Group").
+        account: Account name (e.g. "Williams-Sonoma, Inc.").
         activity_type: Call / Email / Meeting / Note.
         summary: One-line summary of the interaction.
     """
@@ -166,6 +195,8 @@ ALL_TOOLS = [
     get_daily_briefing,
     suggest_meetings_to_schedule,
     get_meeting_prep,
+    get_sec_filings,
+    get_stock_snapshot,
     list_available_rooms,
     assign_meeting_room,
     book_room,

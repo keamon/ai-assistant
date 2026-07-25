@@ -4,9 +4,10 @@ import { api } from "../api";
 import { renderRich } from "../richText";
 
 const STARTERS = [
-  "Create Jira tasks for the Northwind Retail follow-ups",
-  "Log a call with Northwind Retail Group to Salesforce about the Q2 review",
-  "Book a room for my 3pm Brightline Financial review",
+  "What's Williams-Sonoma's latest 10-Q and stock snapshot?",
+  "Create Jira tasks for the Williams-Sonoma follow-ups",
+  "Log a call with Etsy to Salesforce about the RFP",
+  "Book a room for my 3pm Dave BaaS review",
 ];
 
 export default function Chat({

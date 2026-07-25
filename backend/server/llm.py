@@ -65,12 +65,28 @@ def generate_briefing_narrative(summary: dict) -> str:
     suggestions = [f"- {s.get('title')}" for s in summary.get("suggestions", [])]
     market = summary.get("market", {}) or {}
     tpv = (market.get("ssim_payments_banking_snapshot", {}) or {}).get("total_tpv", "")
+    # Public-company customer intelligence (SEC filings + market snapshot) for context.
+    watch_lines = []
+    for w in summary.get("public_company_watch", []) or []:
+        bits = [f"{w.get('name')} ({w.get('ticker')})"]
+        price, chg = w.get("price"), w.get("change_pct")
+        if price is not None:
+            move = f" {chg:+.2f}%" if isinstance(chg, (int, float)) else ""
+            bits.append(f"${price}{move}")
+        if w.get("next_earnings_date"):
+            bits.append(f"earnings {w['next_earnings_date']}")
+        lf = w.get("latest_filing") or {}
+        if lf.get("form"):
+            bits.append(f"latest {lf['form']} filed {lf.get('filed','')}")
+        watch_lines.append("- " + ", ".join(bits))
     prompt = f"""You are the SSIM Daily Briefing agent for a State Street Investment Management
 professional at a digital payment services company with a commercial banking division. Write a
 crisp morning briefing (120-160 words, first person addressed to "you", markdown with short bold
-lead-ins, no title header). Cover: the shape of the day, the most important customer meetings,
-the top 2-3 priority actions from emails, and any payments/risk note. Be specific and
-professional; no filler.
+lead-ins, no title header). Do NOT open with a greeting such as "Good morning" — start directly
+with the substance of the day. Cover: the shape of the day, the most important customer meetings,
+the top 2-3 priority actions from emails, any payments/risk note, and — when relevant — a brief
+**market watch** line on public-company customers with earnings this week or a notable recent
+filing. Be specific and professional; no filler.
 
 Date: {summary.get('date')}
 Yesterday's total payment volume (TPV): {tpv}
@@ -80,6 +96,8 @@ Priority emails:
 {chr(10).join(emails) or '- none'}
 Meetings that should be scheduled:
 {chr(10).join(suggestions) or '- none'}
+Public-company customer watch (price, next earnings, latest SEC filing):
+{chr(10).join(watch_lines) or '- none'}
 """
     try:
         return _generate(prompt)
@@ -87,7 +105,7 @@ Meetings that should be scheduled:
         # Composed fallback
         n_cust = sum(1 for e in summary.get("events", []) if e.get("meeting_type") == "customer")
         return (
-            f"**Good morning.** You have **{len(summary.get('events', []))} meetings** today"
+            f"**You have {len(summary.get('events', []))} meetings** today"
             f"{f' ({n_cust} customer)' if n_cust else ''}, "
             f"**{len(summary.get('priority_emails', []))} priority emails**, and "
             f"**{len(summary.get('suggestions', []))} meetings to schedule**. "

@@ -20,7 +20,6 @@ MOCK_CALENDAR_EVENTS = [
         "attendees": [
             "sarah.chen@statestreet.com",
             "james.okonkwo@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
         ],
         "meeting_type": "internal",
         "video_link": "https://meet.google.com/abc-defg-hij",
@@ -28,15 +27,14 @@ MOCK_CALENDAR_EVENTS = [
     {
         "id": "cal_002",
         "date": _TODAY,
-        "title": "Northwind Retail Group — Q3 2026 Processing Agreement Review",
+        "title": "Williams-Sonoma — Q3 2026 Processing Agreement Review",
         "start": f"{_TODAY}T10:00:00-04:00",
         "end": f"{_TODAY}T11:30:00-04:00",
         "location": "Zoom",
-        "description": "Quarterly review of Northwind Retail Group's ~$12B annual TPV processing relationship. Agenda: Q3 performance, interchange/fee discussion, chargeback trends ahead of the renewal.",
+        "description": "Quarterly review of Williams-Sonoma's ~$12B annual TPV processing relationship. Agenda: Q3 performance, interchange/fee discussion, chargeback trends ahead of the renewal.",
         "attendees": [
-            "marcus.webb@northwindretail.com",
-            "jennifer.wu@northwindretail.com",
-            "dev@chenkeamonwang.altostrat.com",
+            "marcus.webb@williams-sonoma.com",
+            "jennifer.wu@williams-sonoma.com",
             "sarah.chen@statestreet.com",
             "robert.kim@statestreet.com",
         ],
@@ -54,7 +52,6 @@ MOCK_CALENDAR_EVENTS = [
         "description": "Monthly working group: review of fraud model tuning, BSA/AML alert queue, PCI-DSS quarterly scan status, and OFAC sanctions-screening false-positive rate.",
         "attendees": [
             "anna.petrov@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
             "mark.johnson@statestreet.com",
             "lisa.huang@statestreet.com",
         ],
@@ -64,15 +61,14 @@ MOCK_CALENDAR_EVENTS = [
     {
         "id": "cal_004",
         "date": _TODAY,
-        "title": "RFP Finalist Pitch — Atlas Marketplace (Payments + BaaS)",
+        "title": "RFP Finalist Pitch — Etsy (Payments + BaaS)",
         "start": f"{_TODAY}T15:00:00-04:00",
         "end": f"{_TODAY}T16:30:00-04:00",
         "location": "Toronto Office / Video",
-        "description": "Pitch for a combined payments processing + embedded-lending (BaaS) deal, ~$3B projected annual TPV. Atlas Marketplace is evaluating SSIM against Stripe and Adyen. Focus on network reliability and fraud/chargeback performance.",
+        "description": "Pitch for a combined payments processing + embedded-lending (BaaS) deal, ~$3B projected annual TPV. Etsy is evaluating SSIM against Stripe and Adyen. Focus on network reliability and fraud/chargeback performance.",
         "attendees": [
-            "divya.nair@atlasmarketplace.com",
-            "ryan.cole@atlasmarketplace.com",
-            "dev@chenkeamonwang.altostrat.com",
+            "divya.nair@etsy.com",
+            "ryan.cole@etsy.com",
             "peter.walsh@statestreet.com",
         ],
         "meeting_type": "customer",
@@ -88,7 +84,6 @@ MOCK_CALENDAR_EVENTS = [
         "location": "Internal",
         "description": "Weekly risk metrics review: fraud loss rate, chargeback rate, transaction authorization rate, and network uptime/SLA summary across all payment rails.",
         "attendees": [
-            "dev@chenkeamonwang.altostrat.com",
             "james.okonkwo@statestreet.com",
             "anna.petrov@statestreet.com",
         ],
@@ -98,14 +93,13 @@ MOCK_CALENDAR_EVENTS = [
     {
         "id": "cal_006",
         "date": _TOMORROW,
-        "title": "Brightline Financial — BaaS Program Scoping Call",
+        "title": "Dave — BaaS Program Scoping Call",
         "start": f"{_TOMORROW}T09:00:00-04:00",
         "end": f"{_TOMORROW}T10:00:00-04:00",
         "location": "Video",
-        "description": "Initial scoping call with Brightline Financial to expand their Banking-as-a-Service program (FBO accounts, card issuing, embedded lending). Currently ~$500M in program deposits.",
+        "description": "Initial scoping call with Dave to expand their Banking-as-a-Service program (FBO accounts, card issuing, embedded lending). Currently ~$500M in program deposits.",
         "attendees": [
-            "priya.desai@brightlinefinancial.com",
-            "dev@chenkeamonwang.altostrat.com",
+            "priya.desai@dave.com",
         ],
         "meeting_type": "customer",
         "is_customer_meeting": True,
@@ -116,7 +110,7 @@ MOCK_CALENDAR_EVENTS = [
 MOCK_EMAILS = [
     {
         "id": "email_001",
-        "from": "marcus.webb@northwindretail.com",
+        "from": "marcus.webb@williams-sonoma.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "RE: Q3 2026 Renewal Terms — Action Required Before Meeting",
         "date": f"{_TODAY}T07:15:00-04:00",
@@ -138,7 +132,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_003",
-        "from": "ryan.cole@atlasmarketplace.com",
+        "from": "ryan.cole@etsy.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Agenda Confirmation — SSIM Payments + BaaS Pitch Today",
         "date": f"{_TODAY}T08:00:00-04:00",
@@ -184,18 +178,18 @@ MOCK_EMAILS = [
         "id": "email_007",
         "from": "peter.walsh@statestreet.com",
         "to": "dev@chenkeamonwang.altostrat.com",
-        "subject": "Atlas Marketplace CFO joining today — Update strategy",
+        "subject": "Etsy CFO joining today — Update strategy",
         "date": f"{_TODAY}T09:00:00-04:00",
-        "snippet": "Just got word that Atlas Marketplace CFO Elena Marsh will join the 3pm call. She's focused on network reliability and fraud economics. Adjust opening to lead with our risk/fraud management framework before pricing.",
+        "snippet": "Just got word that Etsy CFO Elena Marsh will join the 3pm call. She's focused on network reliability and fraud economics. Adjust opening to lead with our risk/fraud management framework before pricing.",
         "labels": ["UNREAD", "STARRED"],
         "needs_action": True,
         "starred": True,
     },
     {
         "id": "email_008",
-        "from": "priya.desai@brightlinefinancial.com",
+        "from": "priya.desai@dave.com",
         "to": "dev@chenkeamonwang.altostrat.com",
-        "subject": "RE: Brightline Financial BaaS Program — Pre-call Questions",
+        "subject": "RE: Dave BaaS Program — Pre-call Questions",
         "date": f"{_TODAY}T03:00:00-04:00",
         "snippet": "Thank you for setting up tomorrow's call. Before we connect, could you send us: (1) your BSA/AML and KYC oversight framework, (2) FBO account reconciliation process, (3) card issuing program compliance summary, (4) OCC/FDIC exam readiness for the banking division.",
         "labels": ["UNREAD"],
@@ -208,16 +202,16 @@ MOCK_EMAILS = [
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Q3 Interchange & Fee Analysis Ready",
         "date": f"{_TODAY}T07:45:00-04:00",
-        "snippet": "Q3 renewal fee analysis is ready for Northwind Retail Group. Blended interchange cost: 1.8% of TPV, in line with card-mix assumptions. Main driver: increase in premium rewards card mix. Document shared in Drive.",
+        "snippet": "Q3 renewal fee analysis is ready for Williams-Sonoma. Blended interchange cost: 1.8% of TPV, in line with card-mix assumptions. Main driver: increase in premium rewards card mix. Document shared in Drive.",
         "labels": ["INBOX"],
         "needs_action": False,
         "starred": False,
     },
     {
         "id": "email_010",
-        "from": "ryan.cole@atlasmarketplace.com",
+        "from": "ryan.cole@etsy.com",
         "to": "dev@chenkeamonwang.altostrat.com",
-        "subject": "Atlas Marketplace RFP — Shortlist Notification",
+        "subject": "Etsy RFP — Shortlist Notification",
         "date": (
             datetime.date.today() - datetime.timedelta(days=2)
         ).isoformat() + "T14:00:00-04:00",
@@ -264,7 +258,7 @@ MOCK_MARKET_CONTEXT = {
         {
             "type": "contract_renewal",
             "severity": "medium",
-            "message": "Northwind Retail Group processing-agreement renewal due Q3 2026 — interchange/fee negotiation in progress",
+            "message": "Williams-Sonoma processing-agreement renewal due Q3 2026 — interchange/fee negotiation in progress",
             "action_required": "Confirm fee proposal with relationship team before today's meeting",
         },
         {
@@ -283,7 +277,7 @@ MOCK_MARKET_CONTEXT = {
     "treasury_sweep": {
         "sweep_participation_rate": "67%",
         "revenue_ytd": "$142M",
-        "top_merchant_category": "Retail & E-commerce — led by Northwind Retail Group settlement float",
+        "top_merchant_category": "Retail & E-commerce — led by Williams-Sonoma settlement float",
         "alert": "Quarter-end reconciliation pending on 3 merchant sweep positions — treasury desk notified",
     },
 }
@@ -292,21 +286,21 @@ MOCK_MARKET_CONTEXT = {
 # Folded-in Meeting Prep data (Drive documents + customer/CRM profiles).
 # Copied from the meeting_prep agent so Daily Briefing can produce a full prep
 # brief for any meeting (the expandable per-meeting view). Covers SSIM's three
-# active payments/banking relationships: Northwind Retail Group (existing
-# processing client), Atlas Marketplace (RFP finalist), and Brightline
+# active payments/banking relationships: Williams-Sonoma (existing
+# processing client), Etsy (RFP finalist), and Dave
 # Financial (Banking-as-a-Service partner).
 # ════════════════════════════════════════════════════════════════════════════
 
 MOCK_DRIVE_DOCS = [
     {
         "id": "doc_001",
-        "name": "Northwind Retail Group — SSIM Payments Processing Agreement — Q3 2026 Report",
+        "name": "Williams-Sonoma — SSIM Payments Processing Agreement — Q3 2026 Report",
         "mimeType": "application/vnd.google-apps.document",
-        "webViewLink": "https://docs.google.com/document/d/mock_northwind_q3/edit",
+        "webViewLink": "https://docs.google.com/document/d/mock_williams-sonoma_q3/edit",
         "modifiedTime": f"{_TODAY}T07:00:00Z",
         "category": "client_report",
-        "tags": ["northwind", "retail", "payments", "q3", "2026", "performance", "interchange"],
-        "content": """Northwind Retail Group — Payments Processing Agreement — Q3 2026 Report
+        "tags": ["williams-sonoma", "retail", "payments", "q3", "2026", "performance", "interchange"],
+        "content": """Williams-Sonoma — Payments Processing Agreement — Q3 2026 Report
 
 Program Overview:
 - Annual TPV: $12.1 billion (card + ACH, as of June 30, 2026)
@@ -343,7 +337,7 @@ Processing-Agreement Renewal:
         "webViewLink": "https://docs.google.com/presentation/d/mock_payments_baas/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=10)).isoformat() + "T12:00:00Z",
         "category": "strategy",
-        "tags": ["payments", "baas", "embedded lending", "track record", "atlas"],
+        "tags": ["payments", "baas", "embedded lending", "track record", "etsy"],
         "content": """SSIM Payments + Banking-as-a-Service — Platform Overview
 
 Platform Overview:
@@ -379,7 +373,7 @@ Fee Schedule (proposed for ~$3B projected annual TPV, combined payments + BaaS):
         "webViewLink": "https://docs.google.com/document/d/mock_bsa_aml_policy/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=45)).isoformat() + "T09:00:00Z",
         "category": "policy",
-        "tags": ["bsa aml", "compliance", "policy", "kyc", "ofac", "brightline", "northwind"],
+        "tags": ["bsa aml", "compliance", "policy", "kyc", "ofac", "dave", "williams-sonoma"],
         "content": """SSIM BSA/AML & Compliance Policy — 2026
 
 1. BSA/AML & Sanctions Screening Framework
@@ -396,11 +390,11 @@ SSIM applies BSA/AML controls across all payments and banking-division programs 
 - Key oversight theme: partner-program KYC refresh cadence, high-risk merchant categories
 
 3. Regulatory Oversight (as of Jan 2026)
-- OCC-supervised programs: 12 (includes Brightline Financial FBO program)
+- OCC-supervised programs: 12 (includes Dave FBO program)
 - FDIC-insured deposit programs: 34
 - State money-transmitter licenses held: 48 states + DC
 
-4. Program Risk Profile (Flagship BaaS Program, Brightline Financial)
+4. Program Risk Profile (Flagship BaaS Program, Dave)
 - Program deposits: $500 million (FBO accounts)
 - KYC refresh completion rate: 97%
 - Chargeback/dispute rate vs benchmark: -39% (below industry average)
@@ -415,13 +409,13 @@ SSIM applies BSA/AML controls across all payments and banking-division programs 
     },
     {
         "id": "doc_004",
-        "name": "Atlas Marketplace — RFP Response Draft — Payments + BaaS",
+        "name": "Etsy — RFP Response Draft — Payments + BaaS",
         "mimeType": "application/vnd.google-apps.document",
-        "webViewLink": "https://docs.google.com/document/d/mock_atlas_rfp/edit",
+        "webViewLink": "https://docs.google.com/document/d/mock_etsy_rfp/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=21)).isoformat() + "T15:00:00Z",
         "category": "rfp",
-        "tags": ["atlas", "rfp", "payments", "baas", "embedded lending"],
-        "content": """SSIM RFP Response — Atlas Marketplace — Combined Payments + Embedded Lending (BaaS)
+        "tags": ["etsy", "rfp", "payments", "baas", "embedded lending"],
+        "content": """SSIM RFP Response — Etsy — Combined Payments + Embedded Lending (BaaS)
 
 Section 1: Firm Overview
 State Street Investment Management (SSIM) is a digital payments company processing $4.1
@@ -451,24 +445,28 @@ Section 5: Fee Proposal
     },
     {
         "id": "doc_005",
-        "name": "SSIM Capabilities Deck — Brightline Financial BaaS Pre-read",
+        "name": "SSIM Capabilities Deck — Dave BaaS Pre-read",
         "mimeType": "application/vnd.google-apps.presentation",
-        "webViewLink": "https://docs.google.com/presentation/d/mock_brightline_deck/edit",
+        "webViewLink": "https://docs.google.com/presentation/d/mock_dave_deck/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=3)).isoformat() + "T11:00:00Z",
         "category": "pitch_deck",
-        "tags": ["brightline", "baas", "banking", "compliance", "fintech partner"],
-        "content": "SSIM Capabilities Deck prepared for Brightline Financial. Covers: firm overview, BaaS program structure (FBO accounts, card issuing, embedded lending), BSA/AML & KYC oversight framework, compliance track record, team structure.",
+        "tags": ["dave", "baas", "banking", "compliance", "fintech partner"],
+        "content": "SSIM Capabilities Deck prepared for Dave. Covers: firm overview, BaaS program structure (FBO accounts, card issuing, embedded lending), BSA/AML & KYC oversight framework, compliance track record, team structure.",
     },
 ]
 
 MOCK_CUSTOMER_PROFILES = [
     {
-        "name": "Northwind Retail Group",
-        "full_name": "Northwind Retail Group, Inc.",
-        "keywords": ["northwind", "retail group"],
+        "name": "Williams-Sonoma",
+        "full_name": "Williams-Sonoma, Inc.",
+        "keywords": ["williams-sonoma", "williams sonoma", "wsm"],
+        "ticker": "WSM",
+        "exchange": "NYSE",
+        "cik": "0000719955",
+        "public": True,
         "type": "Omnichannel Retailer",
         "country": "United States",
-        "total_aum": "$18 billion (annual revenue)",
+        "total_aum": "$7.9 billion (annual revenue)",
         "ssim_relationship": {
             "status": "Active Client",
             "since": "March 2018",
@@ -488,12 +486,16 @@ MOCK_CUSTOMER_PROFILES = [
         "recent_activity": "Q3 renewal review today. CFO asking about fees. Interest in expanding cross-border volume.",
     },
     {
-        "name": "Atlas Marketplace",
-        "full_name": "Atlas Marketplace, Inc.",
-        "keywords": ["atlas", "marketplace"],
+        "name": "Etsy",
+        "full_name": "Etsy, Inc.",
+        "keywords": ["etsy"],
+        "ticker": "ETSY",
+        "exchange": "Nasdaq",
+        "cik": "0001370637",
+        "public": True,
         "type": "E-Commerce Marketplace",
         "country": "United States",
-        "total_aum": "$1.2 billion (annual revenue)",
+        "total_aum": "$2.8 billion (annual revenue)",
         "ssim_relationship": {
             "status": "Prospect — RFP Finalist",
             "since": "N/A — new relationship",
@@ -518,9 +520,13 @@ MOCK_CUSTOMER_PROFILES = [
         "recent_activity": "Final pitch today. CFO joining unexpectedly. Must lead with risk/fraud management story.",
     },
     {
-        "name": "Brightline Financial",
-        "full_name": "Brightline Financial, Inc.",
-        "keywords": ["brightline", "financial"],
+        "name": "Dave",
+        "full_name": "Dave Inc.",
+        "keywords": ["dave"],
+        "ticker": "DAVE",
+        "exchange": "Nasdaq",
+        "cik": "0001841408",
+        "public": True,
         "type": "Fintech / Banking-as-a-Service Partner",
         "country": "United States",
         "total_aum": "$500 million (program deposits)",
@@ -544,6 +550,32 @@ MOCK_CUSTOMER_PROFILES = [
             "upcoming_decisions": "Initial scoping call tomorrow — no decision timeline set yet",
         },
         "recent_activity": "Pre-call questions received: BSA/AML framework, FBO reconciliation process, card issuing compliance, OCC/FDIC exam readiness.",
+    },
+    {
+        # Privately held — no ticker. Exercised so the SEC/market tools correctly
+        # report "private company, no public filings" rather than erroring.
+        "name": "Glenbrook Partners",
+        "full_name": "Glenbrook Partners LLC",
+        "keywords": ["glenbrook", "partners"],
+        "public": False,
+        "type": "Payments Advisory Firm (privately held)",
+        "country": "United States",
+        "total_aum": "N/A (private advisory firm)",
+        "ssim_relationship": {
+            "status": "Consultant / Advisor",
+            "since": "2021",
+            "ssim_aum": "$0 (advisory relationship)",
+            "strategies": ["Payments strategy & benchmarking advisory"],
+            "primary_contact": "Peter Walsh (SSIM sponsor)",
+            "relationship_manager": "Peter Walsh (SSIM)",
+        },
+        "investment_profile": {
+            "return_objective": "N/A — advisory engagement",
+            "esg_requirements": "Standard NDA / confidentiality",
+            "key_concerns": ["Independent benchmarking of interchange economics"],
+            "upcoming_decisions": "None on file",
+        },
+        "recent_activity": "Engaged for independent benchmarking of the Williams-Sonoma renewal economics.",
     },
 ]
 
@@ -590,12 +622,11 @@ _IN_3_DAYS = (datetime.date.today() + datetime.timedelta(days=3)).isoformat()
 MOCK_MEETING_SUGGESTIONS = [
     {
         "id": "sug_001",
-        "title": "Northwind Cross-Border Expansion — Scoping Call",
-        "rationale": "Marcus Webb (Northwind Retail Group) raised interest in expanding $500M of cross-border volume; no meeting is on the calendar yet.",
+        "title": "Williams-Sonoma Cross-Border Expansion — Scoping Call",
+        "rationale": "Marcus Webb (Williams-Sonoma) raised interest in expanding $500M of cross-border volume; no meeting is on the calendar yet.",
         "suggested_attendees": [
-            "marcus.webb@northwindretail.com",
+            "marcus.webb@williams-sonoma.com",
             "sarah.chen@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
         ],
         "suggested_duration_min": 45,
         "priority": "high",
@@ -605,11 +636,10 @@ MOCK_MEETING_SUGGESTIONS = [
     },
     {
         "id": "sug_002",
-        "title": "Atlas Marketplace Pitch Debrief (internal)",
-        "rationale": "After today's Atlas Marketplace final pitch, an internal debrief will capture follow-ups before the 30-day selection window closes.",
+        "title": "Etsy Pitch Debrief (internal)",
+        "rationale": "After today's Etsy final pitch, an internal debrief will capture follow-ups before the 30-day selection window closes.",
         "suggested_attendees": [
             "peter.walsh@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
         ],
         "suggested_duration_min": 30,
         "priority": "medium",
@@ -623,7 +653,6 @@ MOCK_MEETING_SUGGESTIONS = [
         "rationale": "Compliance flagged the PCI-DSS quarterly scan review is due Friday COB; a working session is needed to review scan remediation results.",
         "suggested_attendees": [
             "compliance@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
         ],
         "suggested_duration_min": 60,
         "priority": "high",
@@ -637,7 +666,6 @@ MOCK_MEETING_SUGGESTIONS = [
         "rationale": "Overnight fraud spike (3.2x baseline in CNP transactions) needs a rule-tuning sync with network ops before end of week.",
         "suggested_attendees": [
             "james.okonkwo@statestreet.com",
-            "dev@chenkeamonwang.altostrat.com",
         ],
         "suggested_duration_min": 30,
         "priority": "medium",
@@ -646,3 +674,143 @@ MOCK_MEETING_SUGGESTIONS = [
         "meeting_type": "internal",
     },
 ]
+
+# ════════════════════════════════════════════════════════════════════════════
+# Public-company market intelligence — SEC EDGAR + Yahoo Finance.
+#
+# SSIM's payments/banking customers are modelled as real mid-cap public
+# companies so their filings and quotes are genuinely useful context for the
+# daily briefing and meeting prep. The live tools (`server.market_data`) fetch
+# the real APIs; the structures below are the offline fallback returned (tagged
+# ``"source": "mock"``) whenever the network is unavailable or a request fails.
+#
+# CIKs verified against https://www.sec.gov/files/company_tickers.json.
+# Accession numbers / document URLs below are real recent filings (as of the
+# 2026 build) so the fallback links resolve on sec.gov.
+# ════════════════════════════════════════════════════════════════════════════
+
+TICKER_CIK = {
+    "WSM": "0000719955",   # Williams-Sonoma, Inc. (NYSE)
+    "ETSY": "0001370637",  # Etsy, Inc. (Nasdaq)
+    "DAVE": "0001841408",  # Dave Inc. (Nasdaq)
+}
+
+MOCK_SEC_FILINGS = {
+    "WSM": {
+        "company": "WILLIAMS-SONOMA INC",
+        "ticker": "WSM",
+        "cik": "0000719955",
+        "filings": [
+            {"form": "8-K", "filed": "2026-06-22", "period": "2026-06-18",
+             "accession": "0000719955-26-000164", "primary_doc": "wsm-20260618.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/719955/000071995526000164/wsm-20260618.htm",
+             "summary": "Q1 FY2026 results & management commentary — comparable brand revenue and merchandise-margin update."},
+            {"form": "10-Q", "filed": "2026-05-22", "period": "2026-05-03",
+             "accession": "0000719955-26-000131", "primary_doc": "wsm-20260503.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/719955/000071995526000131/wsm-20260503.htm",
+             "summary": "Q1 FY2026 (quarter ended May 3, 2026) — net revenues, e-commerce mix, and card-based payment volumes."},
+            {"form": "10-K", "filed": "2026-03-26", "period": "2026-02-01",
+             "accession": "0000719955-26-000059", "primary_doc": "wsm-20260201.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/719955/000071995526000059/wsm-20260201.htm",
+             "summary": "FY2025 annual report (year ended Feb 1, 2026) — omnichannel revenue, DTC mix, payment-processing costs."},
+        ],
+    },
+    "ETSY": {
+        "company": "Etsy Inc",
+        "ticker": "ETSY",
+        "cik": "0001370637",
+        "filings": [
+            {"form": "8-K", "filed": "2026-07-16", "period": "2026-07-12",
+             "accession": "0001370637-26-000066", "primary_doc": "etsy-20260712.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1370637/000137063726000066/etsy-20260712.htm",
+             "summary": "Q2 2026 earnings release — GMS (gross merchandise sales), take rate, and Etsy Payments adoption."},
+            {"form": "10-Q", "filed": "2026-04-29", "period": "2026-03-31",
+             "accession": "0001370637-26-000044", "primary_doc": "etsy-20260331.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1370637/000137063726000044/etsy-20260331.htm",
+             "summary": "Q1 2026 (quarter ended Mar 31, 2026) — GMS, Etsy Payments processing volume, marketplace revenue."},
+            {"form": "10-K", "filed": "2026-02-19", "period": "2025-12-31",
+             "accession": "0001370637-26-000019", "primary_doc": "etsy-20251231.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1370637/000137063726000019/etsy-20251231.htm",
+             "summary": "FY2025 annual report — GMS, Payments penetration, and payment-processing / chargeback risk factors."},
+        ],
+    },
+    "DAVE": {
+        "company": "Dave Inc.",
+        "ticker": "DAVE",
+        "cik": "0001841408",
+        "filings": [
+            {"form": "8-K", "filed": "2026-06-02", "period": "2026-06-02",
+             "accession": "0001193125-26-253774", "primary_doc": "dave-20260602.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1841408/000119312526253774/dave-20260602.htm",
+             "summary": "Corporate update — member growth, ExtraCash originations, and sponsor-bank program metrics."},
+            {"form": "10-Q", "filed": "2026-05-05", "period": "2026-03-31",
+             "accession": "0001193125-26-206446", "primary_doc": "dave-20260331.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1841408/000119312526206446/dave-20260331.htm",
+             "summary": "Q1 2026 (quarter ended Mar 31, 2026) — transaction/interchange revenue and sponsor-bank (BaaS) deposits."},
+            {"form": "10-K", "filed": "2026-03-02", "period": "2025-12-31",
+             "accession": "0001193125-26-085370", "primary_doc": "dave-20251231.htm",
+             "url": "https://www.sec.gov/Archives/edgar/data/1841408/000119312526085370/dave-20251231.htm",
+             "summary": "FY2025 annual report — interchange & transaction revenue, sponsor-bank relationship, BSA/AML risk factors."},
+        ],
+    },
+}
+
+MOCK_YAHOO_FINANCE = {
+    "WSM": {
+        "company": "Williams-Sonoma, Inc.",
+        "exchange": "NYSE",
+        "currency": "USD",
+        "quote": {
+            "price": 226.74, "change": 8.14, "change_pct": 3.72, "prev_close": 218.60,
+            "day_low": 219.05, "day_high": 228.40, "week52_low": 165.51, "week52_high": 244.65,
+            "volume": 2150000, "market_cap": 26700000000, "pe_ratio": 25.4,
+        },
+        "next_earnings_date": "2026-08-26",
+        "news": [
+            {"headline": "Williams-Sonoma tops Q1 estimates as furnishings demand stabilizes",
+             "source": "MarketWatch", "date": "2026-06-22", "url": "https://finance.yahoo.com/quote/WSM/news"},
+            {"headline": "Retailer's e-commerce mix holds above 65% of revenue",
+             "source": "Barron's", "date": "2026-06-18", "url": "https://finance.yahoo.com/quote/WSM/news"},
+            {"headline": "Board authorizes additional share buyback",
+             "source": "Bloomberg", "date": "2026-06-10", "url": "https://finance.yahoo.com/quote/WSM/news"},
+        ],
+    },
+    "ETSY": {
+        "company": "Etsy, Inc.",
+        "exchange": "Nasdaq",
+        "currency": "USD",
+        "quote": {
+            "price": 62.40, "change": 1.55, "change_pct": 2.55, "prev_close": 60.85,
+            "day_low": 60.60, "day_high": 63.10, "week52_low": 40.15, "week52_high": 75.30,
+            "volume": 3900000, "market_cap": 6600000000, "pe_ratio": 24.8,
+        },
+        "next_earnings_date": "2026-07-30",
+        "news": [
+            {"headline": "Etsy Q2 preview: GMS growth and take-rate expansion in focus",
+             "source": "Reuters", "date": "2026-07-15", "url": "https://finance.yahoo.com/quote/ETSY/news"},
+            {"headline": "Etsy Payments now processes the vast majority of marketplace volume",
+             "source": "TechCrunch", "date": "2026-07-08", "url": "https://finance.yahoo.com/quote/ETSY/news"},
+            {"headline": "Analysts weigh marketplace competition ahead of earnings",
+             "source": "Bloomberg", "date": "2026-07-02", "url": "https://finance.yahoo.com/quote/ETSY/news"},
+        ],
+    },
+    "DAVE": {
+        "company": "Dave Inc.",
+        "exchange": "Nasdaq",
+        "currency": "USD",
+        "quote": {
+            "price": 205.30, "change": 5.90, "change_pct": 2.96, "prev_close": 199.40,
+            "day_low": 197.80, "day_high": 208.10, "week52_low": 44.60, "week52_high": 262.00,
+            "volume": 520000, "market_cap": 2800000000, "pe_ratio": 21.5,
+        },
+        "next_earnings_date": "2026-08-04",
+        "news": [
+            {"headline": "Dave posts record ExtraCash originations, raises guidance",
+             "source": "CNBC", "date": "2026-06-02", "url": "https://finance.yahoo.com/quote/DAVE/news"},
+            {"headline": "Consumer fintech leans on sponsor-bank model for deposits",
+             "source": "American Banker", "date": "2026-05-28", "url": "https://finance.yahoo.com/quote/DAVE/news"},
+            {"headline": "Dave shares extend rally on improving credit metrics",
+             "source": "Bloomberg", "date": "2026-05-20", "url": "https://finance.yahoo.com/quote/DAVE/news"},
+        ],
+    },
+}

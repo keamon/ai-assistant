@@ -21,6 +21,8 @@ so behaviour is identical whether triggered by chat or by a UI button.
 import datetime
 from zoneinfo import ZoneInfo
 
+from server import market_data
+
 EASTERN = ZoneInfo("America/New_York")
 OWNER_EMAIL = "dev@chenkeamonwang.altostrat.com"
 _INTERNAL_DOMAINS = ("chenkeamonwang.altostrat.com", "statestreet.com")
@@ -173,8 +175,97 @@ def briefing_summary(store):
         "priority_emails": [e for e in store.emails if e.get("needs_action")],
         "starred_emails": [e for e in store.emails if e.get("starred")],
         "market": store.market,
+        "public_company_watch": public_company_watch(store),
         "suggestions": suggest_meetings(store),
     }
+
+
+# ─── Public-company market intelligence (SEC EDGAR + Yahoo Finance) ──────────
+
+def _resolve_company(store, query):
+    """Match a free-text query (ticker or company name/keyword) to a profile."""
+    if not query:
+        return None
+    ql = query.strip().lower()
+    # 1) exact ticker match
+    for p in store.customer_profiles:
+        if p.get("ticker") and p["ticker"].lower() == ql:
+            return p
+    # 2) name / full name / keyword match (either direction)
+    for p in store.customer_profiles:
+        hay = " ".join(
+            [p.get("name", ""), p.get("full_name", "")] + p.get("keywords", [])
+        ).lower()
+        if ql in hay or any(kw and kw in ql for kw in p.get("keywords", [])):
+            return p
+    return None
+
+
+def _private_response(profile, what):
+    return {
+        "public": False,
+        "company": profile.get("full_name") or profile.get("name"),
+        "message": f"{profile.get('name')} is privately held — no {what} available.",
+    }
+
+
+def sec_filings(store, query, form_type=""):
+    """Recent SEC filings for a customer, resolved from a ticker or name."""
+    profile = _resolve_company(store, query)
+    if not profile:
+        return {"error": f"No customer matched '{query}'.", "query": query}
+    if not profile.get("ticker") or profile.get("public") is False:
+        return _private_response(profile, "SEC filings")
+    key = f"{profile['ticker']}:{form_type}"
+    if key not in store.sec_cache:
+        store.sec_cache[key] = market_data.get_sec_filings(
+            profile["ticker"], profile.get("cik", ""), form_type
+        )
+    return store.sec_cache[key]
+
+
+def stock_snapshot(store, query):
+    """Live quote + next earnings + headlines for a customer."""
+    profile = _resolve_company(store, query)
+    if not profile:
+        return {"error": f"No customer matched '{query}'.", "query": query}
+    if not profile.get("ticker") or profile.get("public") is False:
+        return _private_response(profile, "public stock data")
+    ticker = profile["ticker"]
+    if ticker not in store.stock_cache:
+        store.stock_cache[ticker] = market_data.get_stock_snapshot(ticker)
+    return store.stock_cache[ticker]
+
+
+def public_company_watch(store):
+    """Compact one-row-per-public-customer market watch for the briefing card."""
+    rows = []
+    for p in store.customer_profiles:
+        if not p.get("ticker") or p.get("public") is False:
+            continue
+        snap = stock_snapshot(store, p["ticker"])
+        quote = snap.get("quote", {}) or {}
+        news = snap.get("news", []) or []
+        filings = sec_filings(store, p["ticker"]).get("filings", []) or []
+        latest = filings[0] if filings else None
+        rows.append({
+            "name": p.get("name"),
+            "company": snap.get("company") or p.get("full_name"),
+            "ticker": p.get("ticker"),
+            "exchange": p.get("exchange") or snap.get("exchange", ""),
+            "currency": snap.get("currency", "USD"),
+            "price": quote.get("price"),
+            "change": quote.get("change"),
+            "change_pct": quote.get("change_pct"),
+            "next_earnings_date": snap.get("next_earnings_date", ""),
+            "latest_filing": (
+                {"form": latest["form"], "filed": latest["filed"], "url": latest["url"]}
+                if latest else None
+            ),
+            "headline": news[0]["headline"] if news else "",
+            "source": snap.get("source"),
+        })
+    return rows
 
 
 def _find_event(store, event_id="", title=""):
@@ -216,6 +307,16 @@ def meeting_prep(store, event_id="", title=""):
                 profile = p
                 break
 
+    # Enrich customer prep with live market intelligence when the client is public.
+    stock = None
+    latest_filing = None
+    if profile and profile.get("ticker") and profile.get("public") is not False:
+        snap = stock_snapshot(store, profile["ticker"])
+        if not snap.get("error"):
+            stock = snap
+        filings = sec_filings(store, profile["ticker"]).get("filings", []) or []
+        latest_filing = filings[0] if filings else None
+
     return {
         "meeting": {
             "id": event.get("id"), "title": event.get("title"),
@@ -226,6 +327,8 @@ def meeting_prep(store, event_id="", title=""):
         },
         "is_customer_meeting": is_customer,
         "customer_profile": profile,
+        "stock_snapshot": stock,
+        "latest_filing": latest_filing,
         "recent_emails": recent_emails,
         "related_documents": related,
     }

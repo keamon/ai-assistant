@@ -162,6 +162,18 @@ def available_rooms(req: AvailableRoomsRequest) -> dict:
     return {"available_rooms": rooms}
 
 
+@app.get("/api/stock/{query}")
+def stock(query: str) -> dict:
+    """Live stock snapshot (quote, next earnings, news) for a public-company customer."""
+    return logic.stock_snapshot(STORE, query)
+
+
+@app.get("/api/sec/{query}")
+def sec(query: str, form_type: str = "") -> dict:
+    """Recent SEC EDGAR filings (10-K / 10-Q / 8-K) for a public-company customer."""
+    return logic.sec_filings(STORE, query, form_type)
+
+
 @app.get("/api/doc/{doc_id}")
 def doc(doc_id: str) -> dict:
     return logic.get_doc(STORE, doc_id)
@@ -201,7 +213,7 @@ def health() -> dict:
     return {"status": "ok", "service": "ssim-assistant", "date": STORE.date}
 
 
-# ─── Static frontend (deployed container only; see webapp/backend/README.md) ─
+# ─── Static frontend (deployed container only; see README.md) ─
 
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 if _STATIC_DIR.is_dir():

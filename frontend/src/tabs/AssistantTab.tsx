@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import type { Briefing, MeetingPrep, Suggestion } from "../types";
+import type { Briefing, MeetingPrep, Suggestion, PublicCompanyWatch } from "../types";
 import { api } from "../api";
 import DocModal from "../components/DocModal";
 import ScheduleModal, { type ScheduleInitial } from "../components/ScheduleModal";
 import { renderRich } from "../richText";
+
+function fmtPct(n?: number): string {
+  if (typeof n !== "number") return "";
+  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
+}
+
+function moveClass(n?: number): string {
+  if (typeof n !== "number" || n === 0) return "flat";
+  return n > 0 ? "up" : "down";
+}
 
 function fmtTime(iso?: string): string {
   if (!iso) return "";
@@ -149,6 +159,43 @@ function MeetingRow({
                 </div>
               )}
 
+              {(prep.stock_snapshot || prep.latest_filing) && (
+                <div className="prep-block">
+                  <h4>Market snapshot</h4>
+                  {prep.stock_snapshot?.quote && (
+                    <div className="kv">
+                      <span className="k">Share price</span>
+                      <span>
+                        {typeof prep.stock_snapshot.quote.price === "number"
+                          ? `$${prep.stock_snapshot.quote.price.toFixed(2)}`
+                          : "—"}{" "}
+                        <span className={`watch-move ${moveClass(prep.stock_snapshot.quote.change_pct)}`}>
+                          {fmtPct(prep.stock_snapshot.quote.change_pct)}
+                        </span>
+                      </span>
+                      {prep.stock_snapshot.next_earnings_date && (
+                        <>
+                          <span className="k">Next earnings</span>
+                          <span>{prep.stock_snapshot.next_earnings_date}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {prep.latest_filing?.form && (
+                    <p className="small" style={{ marginTop: 6 }}>
+                      Latest SEC filing:{" "}
+                      {prep.latest_filing.url ? (
+                        <a href={prep.latest_filing.url} target="_blank" rel="noreferrer">
+                          {prep.latest_filing.form} · filed {prep.latest_filing.filed}
+                        </a>
+                      ) : (
+                        `${prep.latest_filing.form} · filed ${prep.latest_filing.filed}`
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {prep.recent_emails.length > 0 && (
                 <div className="prep-block">
                   <h4>Recent communications</h4>
@@ -215,6 +262,51 @@ function SuggestionRow({ s, onSchedule }: { s: Suggestion; onSchedule: (init: Sc
   );
 }
 
+function MarketWatchCard({ rows }: { rows: PublicCompanyWatch[] }) {
+  if (!rows.length) return null;
+  return (
+    <div className="card card-pad mt">
+      <div className="section-title">Customer market watch · public-company clients</div>
+      <div className="watch-grid">
+        {rows.map((w) => (
+          <div className="watch-item" key={w.ticker}>
+            <div className="watch-head">
+              <span className="watch-name">{w.name}</span>
+              <span className="watch-ticker">
+                {w.exchange ? `${w.exchange}: ` : ""}{w.ticker}
+              </span>
+            </div>
+            <div className="watch-price-row">
+              <span className="watch-price">
+                {typeof w.price === "number" ? `$${w.price.toFixed(2)}` : "—"}
+              </span>
+              <span className={`watch-move ${moveClass(w.change_pct)}`}>
+                {fmtPct(w.change_pct)}
+              </span>
+            </div>
+            <div className="watch-meta small muted">
+              {w.next_earnings_date && <span>Earnings {w.next_earnings_date}</span>}
+              {w.latest_filing?.form && (
+                <span>
+                  {" · "}
+                  {w.latest_filing.url ? (
+                    <a href={w.latest_filing.url} target="_blank" rel="noreferrer">
+                      {w.latest_filing.form} · {w.latest_filing.filed}
+                    </a>
+                  ) : (
+                    `${w.latest_filing.form} · ${w.latest_filing.filed}`
+                  )}
+                </span>
+              )}
+            </div>
+            {w.headline && <div className="watch-news small">📰 {w.headline}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AssistantTab({ refreshKey, onAction }: { refreshKey: number; onAction: () => void }) {
   const [b, setB] = useState<Briefing | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
@@ -258,6 +350,8 @@ export default function AssistantTab({ refreshKey, onAction }: { refreshKey: num
           <div className="small muted">Generating your briefing…</div>
         )}
       </div>
+
+      {b.public_company_watch && <MarketWatchCard rows={b.public_company_watch} />}
 
       <div className="card card-pad mt">
         <div className="section-title">Today's schedule · click a meeting for prep & talking points</div>

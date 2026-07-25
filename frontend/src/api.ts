@@ -6,6 +6,8 @@ import type {
   DocContent,
   RoomAssignment,
   Room,
+  StockSnapshot,
+  SecFilingsResult,
 } from "./types";
 
 async function get<T>(path: string): Promise<T> {
@@ -30,6 +32,8 @@ export const api = {
   salesforce: () => get<SalesforceData>("/api/salesforce"),
   prep: (eventId: string) => get<MeetingPrep>(`/api/prep/${encodeURIComponent(eventId)}`),
   doc: (docId: string) => get<DocContent>(`/api/doc/${encodeURIComponent(docId)}`),
+  stock: (query: string) => get<StockSnapshot>(`/api/stock/${encodeURIComponent(query)}`),
+  sec: (query: string) => get<SecFilingsResult>(`/api/sec/${encodeURIComponent(query)}`),
   assignRoom: (body: {
     attendees: string[];
     date: string;

@@ -1,20 +1,32 @@
 # SSIM Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 0.8 · Date: 2026-07-17
+> Status: Living document · Version 1.3 · Date: 2026-07-25
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Owner: SSIM AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
+
+> 📦 **Repository scope note (2026-07-25):** This repo now ships **only the concierge web app**
+> (`backend/` + `frontend/`) — a self-contained FastAPI backend with its own in-process concierge agent plus a
+> React frontend. The **6 standalone ADK agents** (`daily_briefing`, `meeting_prep`,
+> `meeting_room`, `proj_ma`, `rfp`, `sales`) were **removed from source** to keep the deployable
+> surface lean; their capabilities are delivered today by the concierge agent's tools, and their
+> design/roadmap is **retained below as the product vision**. Domain mock data now lives in
+> `backend/server/mock_data.py`.
 
 ---
 
 ## 1. Overview
 
-State Street Investment Management (SSIM, ~$4.1T AUM, institutional-only) has built a set of
-standalone AI agents on Google's ADK + Vertex AI. This product unifies them into a **single
-employee digital assistant**: one web surface where an SSIM employee gets help across their
-day — morning briefing, meeting preparation and scheduling, room booking, project tasks,
-client/CRM work, RFPs, and sales support — backed by a concierge agent that routes to
-specialists, with structured outputs rendered as rich UI (not raw chat text).
+State Street Investment Management (SSIM) is a digital payment services company — processing
+~$4.1T in total payment volume (TPV) annually across card, ACH, and real-time (RTP/FedNow) and
+cross-border rails — that also operates a traditional commercial banking division ($85B in
+commercial deposits, $40B in commercial loans, serving business banking and banking-as-a-service
+partners). SSIM has built a set of standalone AI agents on Google's ADK + Vertex AI. This
+product unifies them into a **single employee digital assistant**: one web surface where an
+SSIM employee gets help across their day — morning briefing, meeting preparation and
+scheduling, room booking, project tasks, client/CRM work, RFPs, and sales support — backed by a
+concierge agent that routes to specialists, with structured outputs rendered as rich UI (not raw
+chat text).
 
 This PRD defines the committed product: what is delivered in v1, what is on the roadmap, the
 requirements behind each capability, and how success is measured.
@@ -47,14 +59,14 @@ requirements behind each capability, and how success is measured.
 **Non-goals (v1)**
 - Real production integrations with live Gmail/Calendar/Drive/Jira/Salesforce (mock-backed;
   real APIs are a roadmap item). Per-employee OAuth identity is out of scope for v1.
-- Compliance/gating, investment research, and Tier-2/3 agents (roadmap).
+- Compliance/gating, payments & risk research, and Tier-2/3 agents (roadmap).
 - Fine-grained authz, audit-grade write trails, and multi-tenant isolation (roadmap).
 
 ## 4. Target users (personas)
 
 | Persona | Needs the assistant for |
 |---|---|
-| Portfolio Manager / Strategist | Market/portfolio context, meeting prep, research (roadmap) |
+| Payments Product / Risk Manager | Payments & risk context, meeting prep, research (roadmap) |
 | Relationship Manager | Client meeting prep, follow-ups, CRM updates, scheduling |
 | BD / Sales | Proposals, competitive intel, CRM logging, RFP support |
 | Project / Ops lead | Workload analysis, creating & tracking Jira tasks |
@@ -73,17 +85,26 @@ requirements behind each capability, and how success is measured.
 - **Daily Briefing** upgrades: suggested-meetings-to-schedule, one-click scheduling with
   auto room assignment, and **Meeting Prep folded in** as an expandable per-meeting view.
 - **Assistant write-backs** that update the mock **Jira** and **Salesforce** boards live.
+- **Public-company customer intelligence**: the customers are modeled as **real mid-cap public
+  companies** (Williams-Sonoma / NYSE: WSM, Etsy / Nasdaq: ETSY, Dave / Nasdaq: DAVE; Glenbrook
+  Partners stays private), and the assistant pulls **live SEC EDGAR filings** (10-K / 10-Q / 8-K)
+  and a **Yahoo Finance market snapshot** (price, move, next earnings, headlines) — surfaced in
+  the briefing, meeting prep, and via two chat tools. Live APIs with a **Google Search fallback**
+  for stock price/move (when Yahoo is unreachable) and graceful mock fallback beyond that; the
+  UI shows the data only, no live/mock provenance label.
+- **Automated tests + CI**: a backend pytest suite and a frontend Vitest suite run in GitHub
+  Actions on every PR/push so changes are tested before merge.
 - Existing agents remain independently deployable (Project Mgmt, RFP, Sales, Meeting Prep).
 
 ### 5.2 Roadmap (not in v1)
 
-- **Tier 1:** Compliance & Regulatory Assistant (gates RFP/Sales drafts); Post-Meeting /
-  Follow-up agent (writes to CRM/Jira/next-day briefing); Investment Research / Market
-  Intelligence.
+- **Tier 1:** Compliance & Regulatory Assistant (gates RFP/Sales drafts against PCI-DSS/BSA-AML
+  requirements); Post-Meeting / Follow-up agent (writes to CRM/Jira/next-day briefing); Payments
+  & Risk Intelligence (fraud/authorization trends, network/market context).
 - **Tier 2:** Client Reporting / review-pack generator; Knowledge / Policy (HR/IT) Q&A.
 - **Tier 3:** IT helpdesk, Expense & Travel, New-hire onboarding.
 - **Platform:** real data integrations, per-employee auth, shared data/service layer for
-  CRM/Jira, deployment to Agent Engine + Cloud Run, observability & eval in CI.
+  CRM/Jira, deployment to Agent Runtime + Cloud Run, observability & eval in CI.
 
 ## 6. Functional requirements
 
@@ -104,7 +125,9 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 ### 6.2 Daily Briefing (home)
 - **FR-B1 (P0)** The briefing is **generated and displayed automatically on load** — an
   auto-generated narrative plus today's schedule, priority emails, starred follow-ups, and
-  market/portfolio context. No prompt required.
+  payments & risk context (TPV snapshot, fraud/risk alerts, regulatory reminders). No prompt
+  required. The narrative opens directly with the substance of the day — **no greeting** (e.g.
+  no leading "Good morning").
 - **FR-B2 (P0)** Surface **suggested meetings to schedule** derived from signals (emails,
   action items) with rationale, attendees, priority, and suggested date.
 - **FR-B3 (P0)** The **Schedule** action opens a **confirmation widget** pre-filled with
@@ -119,6 +142,17 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 - **FR-B6 (P0)** A confirmed meeting is always visible immediately after scheduling:
   same-day meetings appear under **Today's schedule**; meetings scheduled for another date
   appear under a separate **Upcoming meetings** list.
+- **FR-B7 (P1)** **Public-company customer intelligence.** For customers that are public
+  companies, the briefing shows a **Customer market watch** card (share price + daily move,
+  next earnings date, latest SEC filing link, a recent headline) and meeting prep for a public
+  client is enriched with a **market snapshot + latest SEC filing**. Data is fetched **live**
+  from **SEC EDGAR** (10-K / 10-Q / 8-K) and **Yahoo Finance**; if Yahoo is unreachable, a
+  **Google Search fallback** scrapes a live price + move before resorting to mock, so the
+  card shows real market movement whenever any live source is reachable. Every response is
+  still tagged internally `source: "live"` or `"mock"` for the API/tests, but **the UI does not
+  display that provenance label** — the card shows the data itself, not its source. Private
+  customers (e.g. Glenbrook Partners) correctly report "no public filings." The same data is
+  reachable in chat via the `get_sec_filings` and `get_stock_snapshot` tools.
 
 ### 6.3 Meeting Room Booking
 > No standalone UI — this is backend/agent capability, surfaced only through the Schedule
@@ -174,7 +208,7 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 - **Reliability:** transient model errors degrade gracefully (friendly retry, no broken UI).
 - **Consistency:** domain mock data has a single source of truth so the UI never drifts from
   the agents.
-- **Portability:** local-first (FastAPI + Vite), with a defined path to Agent Engine +
+- **Portability:** local-first (FastAPI + Vite), with a defined path to Agent Runtime +
   Cloud Run.
 - **Maintainability:** each agent self-contained and independently deployable; shared
   conventions (prompts use `[Variable]`, JSON-string tools with mock fallback).
@@ -206,7 +240,7 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Model availability/quota (429/404 by region) | Chat fails | Pin `gemini-3.5-flash`@`us`; graceful retry; read endpoints model-independent |
-| Mock↔real data drift | Demo/real mismatch | Single source of truth (`daily_briefing/app/mock_data.py`); define data contracts (spec §6) |
+| Mock↔real data drift | Demo/real mismatch | Single source of truth (`backend/server/mock_data.py`); define data contracts (spec §6) |
 | Write-action safety | Wrong writes to CRM/Jira | Confirm-before-write; roadmap: audit trail + authz |
 | Per-agent duplication (room logic) | Maintenance cost | Accepted for v1 (deployability > DRY); roadmap: shared service layer |
 | Auth/identity for real data | Blocks production | Roadmap: per-employee OAuth + scoped access |
@@ -223,8 +257,9 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 
 - **Phase 1 (done):** concierge webapp; meeting_room agent; daily briefing upgrades; live
   mock Jira/Salesforce.
-- **Phase 2:** deploy (Agent Engine — pending approval; **Cloud Run done**, see `spec.md` §11);
+- **Phase 2:** deploy (Agent Runtime — `daily_briefing`/`meeting_prep` migrated, pending
+  approval to deploy; **Cloud Run done**, see `spec.md` §11);
   Compliance + Post-Meeting agents; surface Project Mgmt & Sales journeys in the concierge.
-- **Phase 3:** Investment Research; real data integrations + per-employee auth; shared
+- **Phase 3:** Payments & Risk Intelligence; real data integrations + per-employee auth; shared
   CRM/Jira service; eval-in-CI + observability dashboards.
 - **Phase 4:** Tier 2/3 employee agents (Knowledge/Policy, IT, Expense, Onboarding).

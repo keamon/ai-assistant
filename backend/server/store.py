@@ -46,6 +46,9 @@ class Store:
         # LLM generation caches (generated once, cleared on reset)
         self.briefing_narrative: str | None = None
         self.prep_cache: dict[str, dict] = {}
+        # Live market-data caches (SEC filings + stock snapshots), cleared on reset
+        self.sec_cache: dict[str, dict] = {}
+        self.stock_cache: dict[str, dict] = {}
 
 
 # Single process-wide instance.

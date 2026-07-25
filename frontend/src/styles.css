@@ -215,4 +215,21 @@ h1, h2, h3, h4 { margin: 0; }
 .room-suggest { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 .room-pick { font-size: 13.5px; }
 .room-pick select { background: #fff; }
+
+/* ─── Customer market watch (SEC + Yahoo Finance) ────────────── */
+.watch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.watch-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.watch-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.watch-name { font-weight: 700; color: var(--navy); }
+.watch-ticker { font-size: 11.5px; color: var(--ink-3); font-weight: 600; letter-spacing: 0.02em; }
+.watch-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+.watch-price { font-size: 20px; font-weight: 700; color: var(--ink); }
+.watch-move { font-size: 13px; font-weight: 700; }
+.watch-move.up { color: var(--green); }
+.watch-move.down { color: var(--red); }
+.watch-move.flat { color: var(--ink-3); }
+.watch-meta { margin-top: 5px; }
+.watch-meta a { color: var(--teal-ink); text-decoration: none; }
+.watch-meta a:hover { text-decoration: underline; }
+.watch-news { margin-top: 6px; color: var(--ink-2); }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }

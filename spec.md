@@ -1,10 +1,19 @@
 # SSIM Employee Digital Assistant — Technical Specification (SPEC)
 
-> Status: Living document · Version 0.8 · Date: 2026-07-17
+> Status: Living document · Version 1.3 · Date: 2026-07-25
 > Chain: [`ideas.md`](ideas.md) → [`prd.md`](prd.md) → **this spec** → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Scope: the whole solution — agent layer (6 ADK agents) + concierge web app (backend +
 > frontend) + shared mock data/state, plus the deployment path.
 > ⚠️ Keep in sync with code (see CLAUDE.md): agent / tool / endpoint / data-contract / model / architecture changes land here.
+
+> 📦 **Repository scope note (2026-07-25):** The **6 standalone ADK agents** described below
+> (§1 architecture, §2 layout, §4 catalog) were **removed from source** — the repo now ships
+> only the concierge web app (`backend/` + `frontend/`), which is fully self-contained: its in-process
+> concierge agent (`server/agent.py` + `tools.py` + `logic.py`) reproduces the agents' user-facing
+> capabilities, and domain mock data lives in `backend/server/mock_data.py`
+> (was `daily_briefing/app/mock_data.py`). The agent-layer sections are **retained as the
+> product vision / design of record**; the Agent Engine / Agent Runtime deployment notes in §11
+> describe a prior deployment, not the current source tree.
 
 ---
 
@@ -13,8 +22,9 @@
 Two layers:
 
 1. **Agent layer** — independent, deployable ADK agents (one folder each). Each is a
-   self-contained Vertex AI Agent Engine app with mock-data fallback.
-2. **Experience layer** — `webapp/`: a FastAPI backend running a single ADK **concierge**
+   self-contained Vertex AI Agent Runtime app (formerly "Agent Engine" — same managed
+   service, renamed) with mock-data fallback.
+2. **Experience layer** — `backend/` + `frontend/`: a FastAPI backend running a single ADK **concierge**
    agent whose tools read/write a **shared in-process store**, and a React/Vite/TS frontend
    (assistant view + standalone Jira/Salesforce pages). Because the store is shared, an
    assistant action is immediately visible in the Jira / Salesforce views and in the
@@ -26,7 +36,7 @@ Two layers:
                         └───────────▲───────────────────────────────────▲──────────────────────┘
                                     │ POST /api/assistant                │ GET /api/{jira,salesforce,rooms,briefing}
                         ┌───────────┴───────────────────────────────────┴──────────────────────┐
-   webapp/backend       │ FastAPI (server/main.py)                                               │
+   Web app backend      │ FastAPI (server/main.py)                                               │
    (local; → Cloud Run) │   ├── ADK Runner → concierge Agent (server/agent.py)                    │
                         │   │        └── tools (server/tools.py) ── read/write ──┐                │
                         │   └── read endpoints ─────────────────────────────────┤                │
@@ -36,24 +46,26 @@ Two layers:
                                     │ imports domain mock (single source of truth)
                         ┌───────────┴───────────────────────────────────────────────────────────┐
    Agent layer          │ daily_briefing · meeting_prep · meeting_room · proj_ma · rfp · sales    │
-   (Vertex Agent Engine)│  each: app/agent.py (tools + Agent+App), app/mock_data.py, app_utils/,  │
+   (Vertex Agent Runtime)│ each: app/agent.py (tools + Agent+App), app/mock_data.py, app_utils/,  │
                         │        agent_engine_app.py, tests/, pyproject.toml                       │
+                        │        (+ Dockerfile, app/fast_api_app.py on daily_briefing/meeting_prep)│
                         └───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 2. Repository layout
 
+The repo ships the concierge web app only (`backend/` + `frontend/` at the root). The 6
+standalone ADK agents described in §4 were removed from source (see the scope note at top).
+
 ```
 ai_assist/
-├── ideas.md prd.md spec.md
-├── daily_briefing/  meeting_prep/  meeting_room/  proj_ma/  rfp/  sales/   # ADK agents
-│   └── app/{agent.py, mock_data.py, agent_engine_app.py, __init__.py, app_utils/}
-│       tests/{unit,integration,eval}  pyproject.toml  GEMINI.md  README.md
-└── webapp/
-    ├── backend/  (pyproject.toml, server/{main,agent,tools,logic,store,seed,__init__}.py)
-    └── frontend/ (package.json, vite.config.ts, src/{App,api,types,styles,richText}.tsx/ts,
-                   src/components/*, src/tabs/*, src/pages/*, src/styles/*.css,
-                   src/hooks/useFreshTracker.ts)
+├── ideas.md prd.md spec.md implementation.md README.md CLAUDE.md
+├── Dockerfile .dockerignore .gcloudignore            # Cloud Run build (§11)
+├── backend/   pyproject.toml, uv.lock, README.md,
+│              server/{main,agent,tools,logic,store,seed,mock_data,llm,__init__}.py
+└── frontend/  package.json, vite.config.ts, src/{App,api,types,styles,richText}.tsx/ts,
+               src/components/*, src/tabs/*, src/pages/*, src/styles/*.css,
+               src/hooks/useFreshTracker.ts
 ```
 
 ## 3. Model & Vertex configuration
@@ -63,7 +75,7 @@ ai_assist/
   404s in `us-central1`/`us-east4`, is 429 at `global`; `gemini-2.0-flash-001` (prior pin)
   404s everywhere for this project. See memory `vertex-gemini-model-availability`.
 - **Vertex flags:** `GOOGLE_GENAI_USE_VERTEXAI="True"`, project from `google.auth.default()`
-  (`logical-vim-478515-b1`). Applied identically in every agent and in `webapp/backend/server/agent.py`.
+  (`logical-vim-478515-b1`). Applied identically in every agent and in `backend/server/agent.py`.
 - **Prompt convention:** system prompts are Markdown and use `[Variable]` placeholders (never
   `{Variable}`, which ADK treats as session-state lookups).
 
@@ -76,12 +88,18 @@ ai_assist/
   `app/__init__.py` re-exports `app`; `agent_engine_app.py` wraps it as `AgentEngineApp(AdkApp)`
   with telemetry + feedback.
 - Packaging: `uv` + `pyproject.toml` (`google-adk>=1.15,<2`, aiplatform, api-python-client).
+- **Agent Runtime container entrypoint** (`daily_briefing`, `meeting_prep` — see §11): root
+  `Dockerfile` builds the project and runs `app/fast_api_app.py` (a FastAPI app exposing
+  `/api/reasoning_engine` + `/api/stream_reasoning_engine`, the `{class_method, input}`
+  contract Agent Runtime's managed frontend forwards `:query`/`:streamQuery` calls to) plus
+  `/feedback` and `/health`. It dispatches through the same `agent_engine` (`AgentEngineApp`)
+  instance from `agent_engine_app.py` — no duplicated agent-wiring logic.
 
 ### 4.2 Agent catalog
 
 | Agent (folder) | `Agent` name | Tools | Primary data sources | Output |
 |---|---|---|---|---|
-| **Daily Briefing** (`daily_briefing`) | `daily_briefing_agent` | `get_todays_calendar_events`, `get_recent_emails`, `get_starred_emails`, `get_market_context`, `suggest_meetings_to_schedule`, `get_meeting_prep`, `schedule_meeting`, + folded prep: `search_emails_by_attendees`, `search_drive_documents`, `get_drive_document_content`, `get_customer_profile` | Gmail, Calendar, market context; Drive + CRM profiles (folded); rooms/seats (for scheduling) | Morning briefing; per-meeting prep; scheduled event + room booking |
+| **Daily Briefing** (`daily_briefing`) | `daily_briefing_agent` | `get_todays_calendar_events`, `get_recent_emails`, `get_starred_emails`, `get_market_context`, `suggest_meetings_to_schedule`, `get_meeting_prep`, `schedule_meeting`, + folded prep: `search_emails_by_attendees`, `search_drive_documents`, `get_drive_document_content`, `get_customer_profile` | Gmail, Calendar, payments & risk context (TPV, fraud/risk alerts, regulatory reminders); Drive + CRM profiles (folded); rooms/seats (for scheduling) | Morning briefing; per-meeting prep; scheduled event + room booking |
 | **Meeting Prep** (`meeting_prep`) | `meeting_prep_agent` | `search_calendar_events`, `get_meeting_by_id`, `search_emails_by_attendees`, `search_drive_documents`, `get_drive_document_content`, `get_customer_profile` | Calendar, Gmail, Drive, customer profiles | Pre-meeting brief |
 | **Meeting Room** (`meeting_room`) — NEW | `meeting_room_agent` | `list_available_rooms`, `get_attendee_locations`, `assign_meeting_room`, `book_room` | Room inventory, seat directory, booking ledger (mock) | Auto-assigned room + booking |
 | **Project Mgmt** (`proj_ma`) | `project_management_agent` | `list_jira_projects`, `get_jira_project_summary`, `get_jira_issues`, `get_team_members`, `get_workload_analysis`, `create_project_plan_sheet` | Jira (mock), Sheets | Workload analysis; exported plan sheet |
@@ -101,7 +119,7 @@ Given attendees, date, window, optional `min_capacity`:
    and re-checks availability (no double-book).
 
 ### 4.4 Daily Briefing additions (FR-B2/3/4)
-- `suggest_meetings_to_schedule()` → curated suggestions grounded in email/portfolio signals,
+- `suggest_meetings_to_schedule()` → curated suggestions grounded in email/payments-risk signals,
   filtered to drop any whose subject already matches a calendar event.
 - `get_meeting_prep(event_id|title)` → `{meeting, is_customer_meeting, customer_profile,
   recent_emails, related_documents}` (recent_emails exclude the owner to surface the other
@@ -110,25 +128,53 @@ Given attendees, date, window, optional `min_capacity`:
   auto-assigns/books a room using an embedded copy of the room logic (self-contained so the
   agent stays independently deployable).
 
-## 5. Web app — backend (`webapp/backend`, package `server`)
+## 5. Web app — backend (`backend`, package `server`)
 
 - **`store.py`** — process-wide `STORE = Store()` holding mutable: `calendar_events`,
   `emails`, `market`, `drive_docs`, `customer_profiles`, `rooms`, `employee_locations`,
   `room_bookings`, `meeting_suggestions`, `jira`, `salesforce`, plus LLM caches
-  `briefing_narrative` and `prep_cache[event_id]`. `reset()` re-seeds and clears the caches.
+  `briefing_narrative` and `prep_cache[event_id]`, plus market-data caches
+  `sec_cache[ticker:form]` and `stock_cache[ticker]`. `reset()` re-seeds and clears all caches.
+- **`market_data.py`** — **live public-company market intelligence, stdlib only** (no
+  `yfinance`/`pandas`; `urllib` + `http.cookiejar`), so the container stays slim.
+  `get_sec_filings(ticker, cik, form_type="", limit=6)` GETs SEC EDGAR
+  `data.sec.gov/submissions/CIK{cik:010d}.json` (descriptive `User-Agent` required) and parses
+  `filings.recent` into recent 10-K/10-Q/8-K rows; `get_stock_snapshot(ticker)` performs Yahoo's
+  cookie+crumb handshake and reads v7 quote + v10 `calendarEvents` (next earnings) + v1 search
+  (headlines). **Two-tier live fallback for stock quotes**: if Yahoo's handshake fails,
+  `_fetch_google_quote(ticker)` scrapes a live price/change/change_pct off Google's search results
+  page (`_parse_google_quote` extracts Google's mobile-layout answer-box markup via regex) and
+  `_stock_with_google_quote` layers that real price/move onto otherwise-mock company/exchange/
+  earnings/news metadata — best-effort only (Google's markup is undocumented/unversioned and can
+  change or serve a consent interstitial without notice; failures here silently fall through to
+  full mock). **Live with graceful mock fallback overall**: on any error/timeout each function
+  returns the baked-in fixtures from `mock_data` (`MOCK_SEC_FILINGS` / `MOCK_YAHOO_FINANCE`);
+  every response is tagged `source: "live"|"mock"` (the API/data layer keeps this tag even though
+  the UI no longer displays it — see §5.1/§9). Setting `SSIM_DISABLE_LIVE_MARKET=1` skips all
+  network calls, including the Google fallback, and always returns mock (used by tests/CI and for
+  offline demos). No `Store` dependency — store-aware caching lives in `logic.py`.
 - **`llm.py`** — direct `google.genai` client (Vertex, `us`, `gemini-3.5-flash`):
-  `generate_briefing_narrative(summary)` and `generate_meeting_prep(prep) ->
+  `generate_briefing_narrative(summary)` (prompt explicitly forbids opening with a greeting like
+  "Good morning" — starts directly with the substance of the day; the composed no-Vertex fallback
+  matches) and `generate_meeting_prep(prep) ->
   {objective, agenda[], talking_points[], anticipated_questions[]}`, where each
   `anticipated_questions[]` entry is a normalized `{question, answer}` object (`_normalize_qa`
   coerces model output — dict, or a `"question — answer"` string — into that shape, so the UI
   never renders raw JSON). JSON parsed with a safe fallback; both degrade to composed text if
   Vertex is unavailable. Results cached by callers.
-- **`seed.py`** — `build_seed()` loads `daily_briefing/app/mock_data.py` **by file path**
-  (single source of truth for SSIM domain data; that module imports only `datetime`), deep-copies
-  it, and adds demo-only `jira` and `salesforce` state.
+- **`seed.py`** — `build_seed()` imports `server.mock_data` (single source of truth for SSIM
+  domain data; that module imports only `datetime`), deep-copies it, and adds demo-only `jira`
+  and `salesforce` state.
 - **`logic.py`** — pure functions over a `Store`: room availability/assignment/booking,
   `briefing_summary`, `suggest_meetings`, `meeting_prep`, `schedule_meeting`,
-  `create_jira_tasks`, `log_salesforce_activity`, `update_opportunity`, `get_doc`. Shared by
+  `create_jira_tasks`, `log_salesforce_activity`, `update_opportunity`, `get_doc`, plus the
+  market-intelligence wrappers `sec_filings(store, query, form_type="")`,
+  `stock_snapshot(store, query)`, and `public_company_watch(store)` (`_resolve_company` matches a
+  free-text ticker/name/keyword to a customer profile; private or unknown companies return a
+  `{public: False, message}` / `{error}` shape rather than calling out). These wrap
+  `market_data` and cache per ticker in the store. `briefing_summary` now includes
+  `public_company_watch` (one compact row per public customer), and `meeting_prep` attaches
+  `stock_snapshot` + `latest_filing` when the matched customer is public. Shared by
   tools and read endpoints so chat and UI-button paths behave identically. `book_room`
   (booking a room for an **existing** calendar meeting, as opposed to `schedule_meeting`
   which creates a new one) matches `event_title` against `calendar_events` and writes the
@@ -136,15 +182,17 @@ Given attendees, date, window, optional `min_capacity`:
   reflect the booked room instead of the meeting's original (or empty) location.
 - **`tools.py`** — ADK function tools (JSON-string wrappers over `logic` + `STORE`):
   `get_daily_briefing`, `suggest_meetings_to_schedule`, `get_meeting_prep`,
+  `get_sec_filings(company_or_ticker, form_type="")`, `get_stock_snapshot(company_or_ticker)`,
   `list_available_rooms`, `assign_meeting_room`, `book_room`, `schedule_meeting` (optional
   `room_id` to override the auto-pick), `create_jira_tasks`, `log_salesforce_activity`,
   `update_opportunity`. Simple scalar/string args for reliable automatic function-calling
   (e.g., `task_titles` newline/`;`-separated).
 - **`agent.py`** — single concierge `Agent` (`ssim_assistant`, `gemini-3.5-flash`@`us`) with
-  all tools; system prompt describes each capability and the confirm-before-write rule.
+  all tools; system prompt describes each capability (including the market-intelligence tools
+  for public-company customers) and the confirm-before-write rule.
 - **`main.py`** — FastAPI, CORS `*`, lazy `Runner` (`InMemorySessionService`, session per
   `session_id`). Endpoints below. Chat runs the sync ADK runner in FastAPI's threadpool;
-  empty/failed turns return a friendly retry so the UI never breaks. If `webapp/backend/static/`
+  empty/failed turns return a friendly retry so the UI never breaks. If `backend/static/`
   exists (the Cloud Run image only — see §11), mounts the built frontend there and serves it at
   `/`, so `/` returns `index.html` and any other non-`/api` path falls through to it.
 
@@ -153,8 +201,10 @@ Given attendees, date, window, optional `min_capacity`:
 | Method | Path | Body → Response |
 |---|---|---|
 | POST | `/api/assistant` | `{message, session_id?}` → `{reply, session_id}` (tools mutate STORE) |
-| GET | `/api/briefing` | → `{date, events, upcoming_events, priority_emails, starred_emails, market, suggestions, narrative}` (`events` = today only, `upcoming_events` = later dates sorted by start; narrative LLM-generated + cached) |
-| GET | `/api/prep/{event_id}` | → `MeetingPrep` + `{objective, agenda[], talking_points[], anticipated_questions: {question, answer}[]}` (LLM, cached per event) |
+| GET | `/api/briefing` | → `{date, events, upcoming_events, priority_emails, starred_emails, market, suggestions, public_company_watch, narrative}` (`events` = today only, `upcoming_events` = later dates sorted by start; `public_company_watch` = one row per public customer; narrative LLM-generated + cached) |
+| GET | `/api/prep/{event_id}` | → `MeetingPrep` (incl. `stock_snapshot`/`latest_filing` for public customers) + `{objective, agenda[], talking_points[], anticipated_questions: {question, answer}[]}` (LLM, cached per event) |
+| GET | `/api/stock/{query}` | → `StockSnapshot` for a public-company customer (ticker/name/keyword); private/unknown → `{public:false,message}` / `{error}` |
+| GET | `/api/sec/{query}?form_type=` | → `SecFilingsResult` (recent 10-K/10-Q/8-K); optional `form_type` filter; private/unknown handled as above |
 | POST | `/api/assign-room` | `{attendees[], date, start_time, end_time}` → best-fit room **preview (no write)** for the schedule widget |
 | POST | `/api/available-rooms` | `{attendees[], date, start_time, end_time}` → `{available_rooms: Room[]}` — every free room, for the schedule widget's room dropdown |
 | GET | `/api/doc/{doc_id}` | → `{name, content, webViewLink, category}` (document popup) |
@@ -166,7 +216,7 @@ Given attendees, date, window, optional `min_capacity`:
 | GET | `/api/health` | → `{status, service, date}` |
 | GET | `/` | deployed container only: built SPA (`index.html`); no-op locally without a frontend build |
 
-## 6. Web app — frontend (`webapp/frontend`, React + Vite + TS)
+## 6. Web app — frontend (`frontend`, React + Vite + TS)
 
 - **Routing (`App.tsx`):** a dependency-free **hash router** (listens to `hashchange`).
   Default renders the assistant app; `#/jira` and `#/salesforce` render standalone full-page
@@ -220,17 +270,33 @@ CalendarEvent   { id, date, title, start, end, location, description, attendees[
 Suggestion      { id, title, rationale, suggested_attendees[], suggested_duration_min,
                   priority, suggested_date, source_email_id, meeting_type }
 MeetingPrep     { meeting, is_customer_meeting, customer_profile|null,
+                  stock_snapshot?: StockSnapshot|null, latest_filing?: SecFiling|null,
                   recent_emails[], related_documents[],
                   objective?, agenda?[], talking_points?[], anticipated_questions?: AnticipatedQuestion[] }
 AnticipatedQuestion { question, answer? }
+CustomerProfile { name, full_name, type, keywords[], public: bool,
+                  ticker?, exchange?, cik?, investment_profile{...}, ssim_relationship{...}, ... }
+SecFiling       { form, filed, period, accession, primary_doc, url, summary? }
+SecFilingsResult{ company, ticker, cik, source: "live"|"mock", filings: SecFiling[] }
+                  # private/unknown → { public:false, company, message } / { error, query }
+StockSnapshot   { ticker, company, exchange, currency, source: "live"|"mock",
+                  quote{ price, change, change_pct, prev_close, day_low, day_high,
+                         week52_low, week52_high, volume, market_cap, pe_ratio },
+                  next_earnings_date, news: [{ headline, source, date, url }] }
+PublicCompanyWatch { name, company, ticker, exchange, currency, price, change, change_pct,
+                  next_earnings_date, latest_filing: {form, filed, url}|null, headline, source }
 JiraIssue       { id, key, project, title, description, assignee, status, priority, created }
 JiraBoard       { project, columns: ["To Do","In Progress","Done"], issues[] }
-SF.account      { id, name, type, aum, owner, status }
+SF.account      { id, name, type, scale, owner, status }
 SF.opportunity  { id, account, name, stage, amount, close_date }
 SF.activity     { id, account, type, summary, date }
 ```
 `meeting_type` derivation: any attendee domain outside `statestreet.com` /
-`chenkeamonwang.altostrat.com` ⇒ `customer`.
+`chenkeamonwang.altostrat.com` ⇒ `customer`. Customers are modeled as **real public
+companies** — Williams-Sonoma (NYSE: WSM, CIK 0000719955), Etsy (Nasdaq: ETSY, 0001370637),
+Dave (Nasdaq: DAVE, 0001841408) — plus one private firm, Glenbrook Partners (`public:false`,
+no ticker). `mock_data.py` also carries `TICKER_CIK`, `MOCK_SEC_FILINGS`, `MOCK_YAHOO_FINANCE`
+as the offline fallback fixtures.
 
 ## 8. Cross-agent integration map
 
@@ -255,28 +321,71 @@ v1 shares state via the backend `STORE`; the standalone agents remain self-conta
 
 ## 10. Testing & evaluation
 
-- **Unit:** room-assignment ranking + conflict detection; `suggest_meetings_to_schedule`
-  filtering; `meeting_prep` composition; store mutations (jira/sf/schedule). Replace each
-  agent's `tests/unit/test_dummy.py`.
-- **Integration:** `tests/integration/test_agent.py` (Runner stream) and
-  `test_agent_engine_app.py` per agent; backend: FastAPI TestClient over each endpoint +
-  one chat turn asserting a store mutation.
-- **Eval:** ADK evalsets per agent (`tests/eval`), rubric-based response quality; add cases
-  for scheduling, prep, and write-back correctness. Run via `agents-cli eval`.
-- **Frontend:** `npm run build` (tsc + vite) in CI as a smoke gate.
+Automated tests run in **GitHub Actions** (`.github/workflows/ci.yml`) on every pull request
+and on pushes to `main`, so changes are tested before merge. Two independent jobs:
+
+- **Backend (`backend/tests/`, pytest):** run hermetically with `SSIM_DISABLE_LIVE_MARKET=1`
+  (set in `conftest.py` and the CI job env) so the market-data layer never hits the network and
+  the LLM helpers are monkeypatched (no Vertex). Coverage:
+  - `test_market_data.py` — SEC/stock **mock-fallback** (every response `source:"mock"`), form
+    filtering, unknown-ticker handling; the Google-quote scrape's pure parser (`_parse_google_quote`
+    against canned answer-box HTML) and `get_stock_snapshot`'s Yahoo→Google→mock fallback chain
+    (monkeypatched, no real network calls).
+  - `test_logic.py` — `_resolve_company` (ticker/name/keyword), `sec_filings`/`stock_snapshot`
+    (public vs private vs unknown) + caching, `public_company_watch`, `briefing_summary`
+    includes the watch, `meeting_prep` enrichment (customer vs internal), and demo write
+    actions (`log_salesforce_activity`, `create_jira_tasks`).
+  - `test_api.py` — FastAPI **TestClient** over `/api/health`, `/api/reset`, `/api/briefing`
+    (has `public_company_watch`), `/api/stock/{q}`, `/api/sec/{q}` (public/private/form-filter),
+    `/api/prep/{id}` (enriched), `/api/salesforce` (renamed accounts).
+  - `test_seed.py` — no stale customer names/domains remain; public profiles carry
+    `ticker`/`cik` present in the fixtures; Glenbrook stays private.
+  - Config: `pytest` + `httpx` in the `dev` dependency group; `[tool.pytest.ini_options]` sets
+    `testpaths`, `pythonpath="."`. Run: `uv sync && uv run pytest`.
+- **Frontend (`frontend/src/**/*.test.tsx`, Vitest + React Testing Library, jsdom):**
+  `Chat.test.tsx` (starters render incl. the market-intel prompt; clicking sends),
+  `AssistantTab.test.tsx` (the Customer market watch card renders from a mocked briefing —
+  ticker, price, move, filing — and asserts no "mock"/"live" provenance text is shown),
+  `richText.test.tsx` (bold + line-break rendering).
+  Test files are excluded from the production `tsc -b` build. Run: `npm run test`
+  (`vitest run`); `npm run build` (tsc + vite) remains the smoke gate and also runs in CI.
+- **Eval (roadmap):** ADK evalsets / rubric-based response quality for scheduling, prep, and
+  write-back correctness.
 
 ## 11. Deployment
 
 - **Local (v1):** backend `uv run uvicorn server.main:app --port 8000`; frontend
   `npm run dev` (proxy) or `npm run build` + static serve. Requires ADC for the chat.
-- **Agent Engine (roadmap):** `agents-cli deploy` per agent folder (`meeting_room` and the
-  updated `daily_briefing` first). Existing agents already deployed in `us-central1`
-  (reasoning-engine location) — re-deploy after the model change; note the model now serves
-  from `us` multi-region.
+- **Agent Runtime:** `daily_briefing` and `meeting_prep` deploy to Vertex AI Agent Runtime
+  (`deployment_target = "agent_runtime"`) via `agents-cli deploy` (CLI v1.1.0+), which now
+  builds and deploys the project's `Dockerfile` (container-based) rather than the prior
+  source-tarball/introspection path used by the old "Agent Engine" target name. Both were
+  already deployed under the old flow (`reasoningEngines/7580645040108601344` and
+  `.../8231978136217059328` in `us-central1`) — `deployment_metadata.json`'s
+  `remote_agent_runtime_id` still points at those same resource IDs; re-running
+  `agents-cli deploy` updates them in place to the container build. **Not yet migrated:**
+  `meeting_room`, `proj_ma`, `rfp`, `sales` still have `deployment_target = "agent_engine"` in
+  `pyproject.toml` and no `Dockerfile`/`fast_api_app.py` — since the CLI is now v1.1.0
+  globally, `agents-cli deploy` on those four will fail ("Unknown deployment target:
+  agent_engine") until they get the same migration, or are deployed with a pinned
+  `uvx google-agents-cli@0.0.1a1 deploy`. Re-deploy after the model change regardless; the
+  model now serves from `us` multi-region.
+- **Gemini Enterprise registration:** all 6 agents are registered as ADK agents in the
+  **SSIM Personal AI Assistant** app
+  (`projects/799954743226/locations/global/collections/default_collection/engines/
+  ssim-personal-ai-assistant_1778868872170`) as "SSIM Daily Briefing", "SSIM Meeting Prep",
+  "SSIM Project Management", "SSIM RFP Response", "SSIM Sales Support" (meeting_room is not
+  yet registered). Each entry's `adkAgentDefinition.provisionedReasoningEngine` points at that
+  agent's `remote_agent_runtime_id`/`remote_agent_engine_id`; re-run `agents-cli publish
+  gemini-enterprise --gemini-enterprise-app-id ...` after any redeploy that changes the
+  resource ID, or to refresh display name/description. The same app also hosts an unrelated
+  low-code "Daily Financial Briefing Agent" built directly in Gemini Enterprise's UI (no
+  `provisionedReasoningEngine` — not connected to our `daily_briefing` agent).
 - **Cloud Run (shipped):** one combined service — root `Dockerfile` (two-stage: `node:20-slim`
-  builds `webapp/frontend` → `dist/`, then `python:3.12-slim` + `uv sync`s `webapp/backend`,
-  copies the built frontend into `webapp/backend/static/`, and copies
-  `daily_briefing/app/mock_data.py` into the image at the same relative path `seed.py` expects).
+  builds `frontend` → `dist/`, then `python:3.12-slim` + `uv sync`s `backend`,
+  copies `backend/server` — including `mock_data.py` — into the image, and copies the
+  built frontend into `backend/static/`). The deployable surface is fully self-contained
+  under `backend/` + `frontend/`.
   FastAPI serves `/api/*` and the built SPA from the same origin (no CORS, no cross-service
   IAM). Deployed as `ssim-assistant` in `us-central1`, `--no-allow-unauthenticated` with
   `roles/run.invoker` granted to `domain:chenkeamonwang.altostrat.com` (matches the IAM pattern
@@ -288,8 +397,9 @@ v1 shares state via the backend `STORE`; the standalone agents remain self-conta
 
 ## 12. Observability
 
-- Agent Engine apps ship telemetry to Cloud Trace / BigQuery / Cloud Logging via `app_utils/
-  telemetry.py`; `AgentEngineApp.register_feedback` logs structured feedback.
+- Agent Runtime apps ship telemetry to Cloud Trace / BigQuery / Cloud Logging via `app_utils/
+  telemetry.py`; `AgentEngineApp.register_feedback` logs structured feedback (reached over
+  HTTP via `/feedback` on the container-deployed agents).
 - Backend: standard logging; add request/latency metrics and per-tool call logging when
   deployed. Frontend: capture chat errors surfaced to the user.
 
@@ -301,5 +411,8 @@ v1 shares state via the backend `STORE`; the standalone agents remain self-conta
   routing across specialists (Project Mgmt, Sales, RFP, Compliance, Research) as they are
   onboarded.
 - **New agents:** Compliance (gating), Post-Meeting (closes the loop into CRM/Jira/briefing),
-  Investment Research; then Tier 2/3 employee agents.
+  Payments & Risk Intelligence; then Tier 2/3 employee agents.
 - Persist store to a datastore for multi-instance Cloud Run; per-employee auth; eval-in-CI.
+- Migrate `meeting_room`, `proj_ma`, `rfp`, `sales` to Agent Runtime the same way as
+  `daily_briefing`/`meeting_prep` (see §11) — needed before `agents-cli deploy` works for
+  them again under the now-global CLI v1.1.0.
