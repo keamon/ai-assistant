@@ -56,7 +56,7 @@ export default function Chat({
     <div className="card chat">
       <div className="chat-head">
         <span className="dot" />
-        <strong>SSIM Assistant</strong>
+        <strong>FinTechCo Assistant</strong>
         <span className="small muted">concierge</span>
       </div>
 

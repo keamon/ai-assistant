@@ -25,7 +25,7 @@ from server import market_data
 
 EASTERN = ZoneInfo("America/New_York")
 OWNER_EMAIL = "dev@chenkeamonwang.altostrat.com"
-_INTERNAL_DOMAINS = ("chenkeamonwang.altostrat.com", "statestreet.com")
+_INTERNAL_DOMAINS = ("chenkeamonwang.altostrat.com", "fintechco.com")
 
 
 # ─── datetime + room helpers ────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 """
-Mock data for Daily Briefing Agent — State Street Investment Management.
+Mock data for Daily Briefing Agent — FinTechCo.
 Simulates Gmail, Google Calendar, and payments/banking market context responses.
 """
 
@@ -18,8 +18,8 @@ MOCK_CALENDAR_EVENTS = [
         "location": "Conference Room 4A, Boston",
         "description": "Daily review of overnight transaction volumes, authorization-rate anomalies, and network incidents.",
         "attendees": [
-            "sarah.chen@statestreet.com",
-            "james.okonkwo@statestreet.com",
+            "sarah.chen@fintechco.com",
+            "james.okonkwo@fintechco.com",
         ],
         "meeting_type": "internal",
         "video_link": "https://meet.google.com/abc-defg-hij",
@@ -35,8 +35,8 @@ MOCK_CALENDAR_EVENTS = [
         "attendees": [
             "marcus.webb@williams-sonoma.com",
             "jennifer.wu@williams-sonoma.com",
-            "sarah.chen@statestreet.com",
-            "robert.kim@statestreet.com",
+            "sarah.chen@fintechco.com",
+            "robert.kim@fintechco.com",
         ],
         "meeting_type": "customer",
         "video_link": "https://zoom.us/j/12345678",
@@ -51,9 +51,9 @@ MOCK_CALENDAR_EVENTS = [
         "location": "Teams",
         "description": "Monthly working group: review of fraud model tuning, BSA/AML alert queue, PCI-DSS quarterly scan status, and OFAC sanctions-screening false-positive rate.",
         "attendees": [
-            "anna.petrov@statestreet.com",
-            "mark.johnson@statestreet.com",
-            "lisa.huang@statestreet.com",
+            "anna.petrov@fintechco.com",
+            "mark.johnson@fintechco.com",
+            "lisa.huang@fintechco.com",
         ],
         "meeting_type": "internal",
         "video_link": "https://teams.microsoft.com/l/meetup-join/mock",
@@ -65,11 +65,11 @@ MOCK_CALENDAR_EVENTS = [
         "start": f"{_TODAY}T15:00:00-04:00",
         "end": f"{_TODAY}T16:30:00-04:00",
         "location": "Toronto Office / Video",
-        "description": "Pitch for a combined payments processing + embedded-lending (BaaS) deal, ~$3B projected annual TPV. Etsy is evaluating SSIM against Stripe and Adyen. Focus on network reliability and fraud/chargeback performance.",
+        "description": "Pitch for a combined payments processing + embedded-lending (BaaS) deal, ~$3B projected annual TPV. Etsy is evaluating FinTechCo against Stripe and Adyen. Focus on network reliability and fraud/chargeback performance.",
         "attendees": [
             "divya.nair@etsy.com",
             "ryan.cole@etsy.com",
-            "peter.walsh@statestreet.com",
+            "peter.walsh@fintechco.com",
         ],
         "meeting_type": "customer",
         "video_link": "https://zoom.us/j/87654321",
@@ -84,8 +84,8 @@ MOCK_CALENDAR_EVENTS = [
         "location": "Internal",
         "description": "Weekly risk metrics review: fraud loss rate, chargeback rate, transaction authorization rate, and network uptime/SLA summary across all payment rails.",
         "attendees": [
-            "james.okonkwo@statestreet.com",
-            "anna.petrov@statestreet.com",
+            "james.okonkwo@fintechco.com",
+            "anna.petrov@fintechco.com",
         ],
         "meeting_type": "internal",
         "video_link": "",
@@ -121,7 +121,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_002",
-        "from": "risk-alerts@statestreet.com",
+        "from": "risk-alerts@fintechco.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "ALERT: Fraud Spike Detected — CNP Transactions Up 3.2x Overnight",
         "date": f"{_TODAY}T06:00:00-04:00",
@@ -134,7 +134,7 @@ MOCK_EMAILS = [
         "id": "email_003",
         "from": "ryan.cole@etsy.com",
         "to": "dev@chenkeamonwang.altostrat.com",
-        "subject": "Agenda Confirmation — SSIM Payments + BaaS Pitch Today",
+        "subject": "Agenda Confirmation — FinTechCo Payments + BaaS Pitch Today",
         "date": f"{_TODAY}T08:00:00-04:00",
         "snippet": "Confirming today's 3pm call. Our CFO will join unexpectedly. Please ensure you have slides on: (1) network uptime/SLA track record, (2) fraud/chargeback performance vs industry benchmark, (3) embedded-lending (BaaS) program structure, (4) fee structure for ~$3B projected TPV.",
         "labels": ["UNREAD"],
@@ -143,7 +143,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_004",
-        "from": "compliance@statestreet.com",
+        "from": "compliance@fintechco.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Deadline: PCI-DSS Quarterly Scan Review — Response Due by EOD Friday",
         "date": f"{_TODAY}T09:30:00-04:00",
@@ -165,7 +165,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_006",
-        "from": "anna.petrov@statestreet.com",
+        "from": "anna.petrov@fintechco.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Compliance Working Group — Pre-read attached",
         "date": f"{_TODAY}T08:45:00-04:00",
@@ -176,7 +176,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_007",
-        "from": "peter.walsh@statestreet.com",
+        "from": "peter.walsh@fintechco.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Etsy CFO joining today — Update strategy",
         "date": f"{_TODAY}T09:00:00-04:00",
@@ -198,7 +198,7 @@ MOCK_EMAILS = [
     },
     {
         "id": "email_009",
-        "from": "james.okonkwo@statestreet.com",
+        "from": "james.okonkwo@fintechco.com",
         "to": "dev@chenkeamonwang.altostrat.com",
         "subject": "Q3 Interchange & Fee Analysis Ready",
         "date": f"{_TODAY}T07:45:00-04:00",
@@ -215,7 +215,7 @@ MOCK_EMAILS = [
         "date": (
             datetime.date.today() - datetime.timedelta(days=2)
         ).isoformat() + "T14:00:00-04:00",
-        "snippet": "We are pleased to inform you that SSIM has been shortlisted for the combined payments + embedded-lending (BaaS) deal. You are one of 3 providers invited to present, alongside Stripe and Adyen. Today's call is your final presentation.",
+        "snippet": "We are pleased to inform you that FinTechCo has been shortlisted for the combined payments + embedded-lending (BaaS) deal. You are one of 3 providers invited to present, alongside Stripe and Adyen. Today's call is your final presentation.",
         "labels": ["INBOX", "STARRED"],
         "needs_action": False,
         "starred": True,
@@ -285,7 +285,7 @@ MOCK_MARKET_CONTEXT = {
 # ════════════════════════════════════════════════════════════════════════════
 # Folded-in Meeting Prep data (Drive documents + customer/CRM profiles).
 # Copied from the meeting_prep agent so Daily Briefing can produce a full prep
-# brief for any meeting (the expandable per-meeting view). Covers SSIM's three
+# brief for any meeting (the expandable per-meeting view). Covers FinTechCo's three
 # active payments/banking relationships: Williams-Sonoma (existing
 # processing client), Etsy (RFP finalist), and Dave
 # Financial (Banking-as-a-Service partner).
@@ -294,7 +294,7 @@ MOCK_MARKET_CONTEXT = {
 MOCK_DRIVE_DOCS = [
     {
         "id": "doc_001",
-        "name": "Williams-Sonoma — SSIM Payments Processing Agreement — Q3 2026 Report",
+        "name": "Williams-Sonoma — FinTechCo Payments Processing Agreement — Q3 2026 Report",
         "mimeType": "application/vnd.google-apps.document",
         "webViewLink": "https://docs.google.com/document/d/mock_williams-sonoma_q3/edit",
         "modifiedTime": f"{_TODAY}T07:00:00Z",
@@ -332,13 +332,13 @@ Processing-Agreement Renewal:
     },
     {
         "id": "doc_002",
-        "name": "SSIM Payments + BaaS — Platform Overview & Performance Track Record",
+        "name": "FinTechCo Payments + BaaS — Platform Overview & Performance Track Record",
         "mimeType": "application/vnd.google-apps.presentation",
         "webViewLink": "https://docs.google.com/presentation/d/mock_payments_baas/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=10)).isoformat() + "T12:00:00Z",
         "category": "strategy",
         "tags": ["payments", "baas", "embedded lending", "track record", "etsy"],
-        "content": """SSIM Payments + Banking-as-a-Service — Platform Overview
+        "content": """FinTechCo Payments + Banking-as-a-Service — Platform Overview
 
 Platform Overview:
 - Total TPV processed: $4.13 trillion annually (as of May 2026)
@@ -368,16 +368,16 @@ Fee Schedule (proposed for ~$3B projected annual TPV, combined payments + BaaS):
     },
     {
         "id": "doc_003",
-        "name": "SSIM BSA/AML & Compliance Policy — 2026",
+        "name": "FinTechCo BSA/AML & Compliance Policy — 2026",
         "mimeType": "application/vnd.google-apps.document",
         "webViewLink": "https://docs.google.com/document/d/mock_bsa_aml_policy/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=45)).isoformat() + "T09:00:00Z",
         "category": "policy",
         "tags": ["bsa aml", "compliance", "policy", "kyc", "ofac", "dave", "williams-sonoma"],
-        "content": """SSIM BSA/AML & Compliance Policy — 2026
+        "content": """FinTechCo BSA/AML & Compliance Policy — 2026
 
 1. BSA/AML & Sanctions Screening Framework
-SSIM applies BSA/AML controls across all payments and banking-division programs through:
+FinTechCo applies BSA/AML controls across all payments and banking-division programs through:
 - Proprietary transaction-monitoring model (informed by FinCEN guidance, OFAC lists, network alerts)
 - Real-time OFAC sanctions screening on all cross-border transactions
 - Enhanced due diligence for BaaS partner programs (KYC/KYB oversight)
@@ -415,10 +415,10 @@ SSIM applies BSA/AML controls across all payments and banking-division programs 
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=21)).isoformat() + "T15:00:00Z",
         "category": "rfp",
         "tags": ["etsy", "rfp", "payments", "baas", "embedded lending"],
-        "content": """SSIM RFP Response — Etsy — Combined Payments + Embedded Lending (BaaS)
+        "content": """FinTechCo RFP Response — Etsy — Combined Payments + Embedded Lending (BaaS)
 
 Section 1: Firm Overview
-State Street Investment Management (SSIM) is a digital payments company processing $4.1
+FinTechCo is a digital payments company processing $4.1
 trillion in total payment volume (TPV) annually, with a commercial banking division holding
 $85B in deposits and $40B in loans outstanding. We serve merchants and platforms across
 card, ACH, real-time payments, and cross-border rails.
@@ -445,13 +445,13 @@ Section 5: Fee Proposal
     },
     {
         "id": "doc_005",
-        "name": "SSIM Capabilities Deck — Dave BaaS Pre-read",
+        "name": "FinTechCo Capabilities Deck — Dave BaaS Pre-read",
         "mimeType": "application/vnd.google-apps.presentation",
         "webViewLink": "https://docs.google.com/presentation/d/mock_dave_deck/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=3)).isoformat() + "T11:00:00Z",
         "category": "pitch_deck",
         "tags": ["dave", "baas", "banking", "compliance", "fintech partner"],
-        "content": "SSIM Capabilities Deck prepared for Dave. Covers: firm overview, BaaS program structure (FBO accounts, card issuing, embedded lending), BSA/AML & KYC oversight framework, compliance track record, team structure.",
+        "content": "FinTechCo Capabilities Deck prepared for Dave. Covers: firm overview, BaaS program structure (FBO accounts, card issuing, embedded lending), BSA/AML & KYC oversight framework, compliance track record, team structure.",
     },
 ]
 
@@ -474,7 +474,7 @@ MOCK_CUSTOMER_PROFILES = [
             "strategies": ["Card Processing (Visa/Mastercard)", "ACH Settlement"],
             "primary_contact": "Marcus Webb (VP of Payments)",
             "secondary_contact": "Jennifer Wu (Treasury Manager)",
-            "relationship_manager": "Sarah Chen (SSIM)",
+            "relationship_manager": "Sarah Chen (FinTechCo)",
             "mandate_expiry": "December 31, 2026",
         },
         "investment_profile": {
@@ -504,7 +504,7 @@ MOCK_CUSTOMER_PROFILES = [
             "primary_contact": "Divya Nair (VP of Payments)",
             "secondary_contact": "Ryan Cole (Head of Finance)",
             "cio": "Elena Marsh (CFO)",
-            "relationship_manager": "Peter Walsh (SSIM)",
+            "relationship_manager": "Peter Walsh (FinTechCo)",
         },
         "investment_profile": {
             "return_objective": "Sub-100ms authorization latency, 99.9%+ network uptime",
@@ -536,7 +536,7 @@ MOCK_CUSTOMER_PROFILES = [
             "ssim_aum": "$0",
             "strategies": ["Exploring expanded BaaS program: FBO accounts, card issuing, embedded lending"],
             "primary_contact": "Priya Desai (Head of Compliance)",
-            "relationship_manager": "Dev (SSIM — initial contact)",
+            "relationship_manager": "Dev (FinTechCo — initial contact)",
         },
         "investment_profile": {
             "return_objective": "Reliable FBO reconciliation and compliant program growth",
@@ -566,8 +566,8 @@ MOCK_CUSTOMER_PROFILES = [
             "since": "2021",
             "ssim_aum": "$0 (advisory relationship)",
             "strategies": ["Payments strategy & benchmarking advisory"],
-            "primary_contact": "Peter Walsh (SSIM sponsor)",
-            "relationship_manager": "Peter Walsh (SSIM)",
+            "primary_contact": "Peter Walsh (FinTechCo sponsor)",
+            "relationship_manager": "Peter Walsh (FinTechCo)",
         },
         "investment_profile": {
             "return_objective": "N/A — advisory engagement",
@@ -596,19 +596,19 @@ MOCK_ROOMS = [
 
 MOCK_EMPLOYEE_LOCATIONS = [
     {"email": "dev@chenkeamonwang.altostrat.com", "name": "Dev (You)", "building": "One Congress", "floor": 7, "seat": "7-114"},
-    {"email": "sarah.chen@statestreet.com", "name": "Sarah Chen", "building": "One Congress", "floor": 7, "seat": "7-102"},
-    {"email": "james.okonkwo@statestreet.com", "name": "James Okonkwo", "building": "One Congress", "floor": 4, "seat": "4-210"},
-    {"email": "anna.petrov@statestreet.com", "name": "Anna Petrov", "building": "One Congress", "floor": 12, "seat": "12-045"},
-    {"email": "mark.johnson@statestreet.com", "name": "Mark Johnson", "building": "Channel Center", "floor": 3, "seat": "3-330"},
-    {"email": "lisa.huang@statestreet.com", "name": "Lisa Huang", "building": "Channel Center", "floor": 6, "seat": "6-118"},
-    {"email": "robert.kim@statestreet.com", "name": "Robert Kim", "building": "One Congress", "floor": 7, "seat": "7-131"},
-    {"email": "peter.walsh@statestreet.com", "name": "Peter Walsh", "building": "Toronto", "floor": 18, "seat": "18-204"},
+    {"email": "sarah.chen@fintechco.com", "name": "Sarah Chen", "building": "One Congress", "floor": 7, "seat": "7-102"},
+    {"email": "james.okonkwo@fintechco.com", "name": "James Okonkwo", "building": "One Congress", "floor": 4, "seat": "4-210"},
+    {"email": "anna.petrov@fintechco.com", "name": "Anna Petrov", "building": "One Congress", "floor": 12, "seat": "12-045"},
+    {"email": "mark.johnson@fintechco.com", "name": "Mark Johnson", "building": "Channel Center", "floor": 3, "seat": "3-330"},
+    {"email": "lisa.huang@fintechco.com", "name": "Lisa Huang", "building": "Channel Center", "floor": 6, "seat": "6-118"},
+    {"email": "robert.kim@fintechco.com", "name": "Robert Kim", "building": "One Congress", "floor": 7, "seat": "7-131"},
+    {"email": "peter.walsh@fintechco.com", "name": "Peter Walsh", "building": "Toronto", "floor": 18, "seat": "18-204"},
 ]
 
 MOCK_ROOM_BOOKINGS = [
-    {"id": "bk_001", "room_id": "room_bos1_4a", "event_title": "Morning Ops Review", "date": _TODAY, "start": f"{_TODAY}T08:30:00-04:00", "end": f"{_TODAY}T09:00:00-04:00", "organizer": "james.okonkwo@statestreet.com"},
-    {"id": "bk_002", "room_id": "room_bos1_12", "event_title": "Client Off-site", "date": _TODAY, "start": f"{_TODAY}T10:00:00-04:00", "end": f"{_TODAY}T12:00:00-04:00", "organizer": "peter.walsh@statestreet.com"},
-    {"id": "bk_003", "room_id": "room_bos1_7", "event_title": "Risk Committee — Weekly Standup", "date": _TODAY, "start": f"{_TODAY}T16:30:00-04:00", "end": f"{_TODAY}T17:00:00-04:00", "organizer": "james.okonkwo@statestreet.com"},
+    {"id": "bk_001", "room_id": "room_bos1_4a", "event_title": "Morning Ops Review", "date": _TODAY, "start": f"{_TODAY}T08:30:00-04:00", "end": f"{_TODAY}T09:00:00-04:00", "organizer": "james.okonkwo@fintechco.com"},
+    {"id": "bk_002", "room_id": "room_bos1_12", "event_title": "Client Off-site", "date": _TODAY, "start": f"{_TODAY}T10:00:00-04:00", "end": f"{_TODAY}T12:00:00-04:00", "organizer": "peter.walsh@fintechco.com"},
+    {"id": "bk_003", "room_id": "room_bos1_7", "event_title": "Risk Committee — Weekly Standup", "date": _TODAY, "start": f"{_TODAY}T16:30:00-04:00", "end": f"{_TODAY}T17:00:00-04:00", "organizer": "james.okonkwo@fintechco.com"},
 ]
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -626,7 +626,7 @@ MOCK_MEETING_SUGGESTIONS = [
         "rationale": "Marcus Webb (Williams-Sonoma) raised interest in expanding $500M of cross-border volume; no meeting is on the calendar yet.",
         "suggested_attendees": [
             "marcus.webb@williams-sonoma.com",
-            "sarah.chen@statestreet.com",
+            "sarah.chen@fintechco.com",
         ],
         "suggested_duration_min": 45,
         "priority": "high",
@@ -639,7 +639,7 @@ MOCK_MEETING_SUGGESTIONS = [
         "title": "Etsy Pitch Debrief (internal)",
         "rationale": "After today's Etsy final pitch, an internal debrief will capture follow-ups before the 30-day selection window closes.",
         "suggested_attendees": [
-            "peter.walsh@statestreet.com",
+            "peter.walsh@fintechco.com",
         ],
         "suggested_duration_min": 30,
         "priority": "medium",
@@ -652,7 +652,7 @@ MOCK_MEETING_SUGGESTIONS = [
         "title": "PCI-DSS Quarterly Scan — Compliance Sign-off Session",
         "rationale": "Compliance flagged the PCI-DSS quarterly scan review is due Friday COB; a working session is needed to review scan remediation results.",
         "suggested_attendees": [
-            "compliance@statestreet.com",
+            "compliance@fintechco.com",
         ],
         "suggested_duration_min": 60,
         "priority": "high",
@@ -665,7 +665,7 @@ MOCK_MEETING_SUGGESTIONS = [
         "title": "Fraud Spike Response — Network Ops Coordination",
         "rationale": "Overnight fraud spike (3.2x baseline in CNP transactions) needs a rule-tuning sync with network ops before end of week.",
         "suggested_attendees": [
-            "james.okonkwo@statestreet.com",
+            "james.okonkwo@fintechco.com",
         ],
         "suggested_duration_min": 30,
         "priority": "medium",
@@ -678,7 +678,7 @@ MOCK_MEETING_SUGGESTIONS = [
 # ════════════════════════════════════════════════════════════════════════════
 # Public-company market intelligence — SEC EDGAR + Yahoo Finance.
 #
-# SSIM's payments/banking customers are modelled as real mid-cap public
+# FinTechCo's payments/banking customers are modelled as real mid-cap public
 # companies so their filings and quotes are genuinely useful context for the
 # daily briefing and meeting prep. The live tools (`server.market_data`) fetch
 # the real APIs; the structures below are the offline fallback returned (tagged

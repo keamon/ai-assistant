@@ -135,6 +135,6 @@ def test_log_salesforce_activity_prepends(store):
 
 def test_create_jira_tasks(store):
     before = len(store.jira["issues"])
-    out = logic.create_jira_tasks(store, "SSIM", "Task one\nTask two", "Dev", "High")
+    out = logic.create_jira_tasks(store, "FTC", "Task one\nTask two", "Dev", "High")
     assert len(store.jira["issues"]) == before + 2
     assert out["created_count"] == 2

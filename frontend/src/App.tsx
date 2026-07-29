@@ -4,6 +4,7 @@ import { api } from "./api";
 import AssistantTab from "./tabs/AssistantTab";
 import JiraPage from "./pages/JiraPage";
 import SalesforcePage from "./pages/SalesforcePage";
+import SpacexAnalyticsPage from "./pages/SpacexAnalyticsPage";
 import Chat from "./components/Chat";
 
 function useHashRoute(): string {
@@ -22,6 +23,7 @@ export default function App() {
   // Standalone product pages (open in their own browser tab).
   if (route.startsWith("#/jira")) return <JiraPage />;
   if (route.startsWith("#/salesforce")) return <SalesforcePage />;
+  if (route.startsWith("#/spacex")) return <SpacexAnalyticsPage />;
 
   return <AssistantApp />;
 }
@@ -50,20 +52,21 @@ function AssistantApp() {
     bump();
   };
 
-  const openPage = (page: "jira" | "salesforce") => window.open(`#/${page}`, "_blank");
+  const openPage = (page: "jira" | "salesforce" | "spacex") => window.open(`#/${page}`, "_blank");
 
   return (
     <div className="app">
       <header className="topbar">
         <div>
           <div className="brand">
-            State Street <span>·</span> Employee Digital Assistant
+            FinTechCo <span>·</span> Employee Digital Assistant
           </div>
-          <div className="sub">SSIM · $4.1T payment volume · commercial banking</div>
+          <div className="sub">FinTechCo · $4.1T payment volume · commercial banking</div>
         </div>
         <div className="spacer" />
         <button className="btn-ghost" onClick={() => openPage("jira")}>Open Jira ↗</button>
         <button className="btn-ghost" onClick={() => openPage("salesforce")}>Open Salesforce ↗</button>
+        <button className="btn-ghost" onClick={() => openPage("spacex")}>SpaceX Analysis ↗</button>
         {date && <span className="pill">{date}</span>}
         <button className="btn-ghost" onClick={resetDemo}>Reset demo</button>
       </header>

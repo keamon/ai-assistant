@@ -157,7 +157,7 @@ def create_jira_tasks(project: str, task_titles: str, assignee: str = "",
     """Create Jira issues in the To Do column (WRITE — confirm first). Updates the Jira board.
 
     Args:
-        project: Jira project key (use "SSIM").
+        project: Jira project key (use "FTC").
         task_titles: Task titles, one per line or separated by ';'.
         assignee: Assignee name. Optional.
         priority: High / Medium / Low. Default Medium.

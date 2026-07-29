@@ -356,3 +356,44 @@ def _mock_stock(ticker: str) -> dict:
         return {"ticker": ticker, "company": ticker, "exchange": "", "currency": "USD",
                 "source": "mock", "quote": {}, "next_earnings_date": "", "news": []}
     return {"ticker": ticker, "source": "mock", **base}
+
+
+# ─── Yahoo Finance — historical daily prices (for charts) ───────────────────
+
+def get_price_history(ticker: str, range_: str = "6mo", interval: str = "1d") -> dict:
+    """Daily close-price history for a ticker, e.g. for an event-study chart.
+
+    Returns ``{ticker, source: "live", currency, prices: [{date, close}]}``.
+    No built-in mock fallback (unlike the rest of this module) — callers with
+    a specific ticker in mind (the SpaceX case study) supply their own baked
+    fixture on failure, since the generic ``mock_data`` fixtures don't carry
+    time series. Raises on failure so callers can distinguish "no live data"
+    from "live data with an empty range".
+    """
+    ticker = (ticker or "").upper()
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ticker)}"
+    params = {"range": range_, "interval": interval}
+    req_url = f"{url}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(req_url, headers={"User-Agent": _BROWSER_UA, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+
+    result = (data.get("chart") or {}).get("result") or []
+    if not result:
+        raise ValueError(f"no Yahoo chart result for {ticker}")
+    r = result[0]
+    meta = r.get("meta", {})
+    timestamps = r.get("timestamp") or []
+    closes = ((r.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+
+    prices = [
+        {"date": datetime.datetime.utcfromtimestamp(ts).date().isoformat(), "close": _r(c)}
+        for ts, c in zip(timestamps, closes)
+        if c is not None
+    ]
+    return {
+        "ticker": ticker,
+        "source": "live",
+        "currency": meta.get("currency", "USD"),
+        "prices": prices,
+    }

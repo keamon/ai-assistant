@@ -1,6 +1,6 @@
-# SSIM Employee Digital Assistant — Technical Specification (SPEC)
+# FinTechCo Employee Digital Assistant — Technical Specification (SPEC)
 
-> Status: Living document · Version 1.3 · Date: 2026-07-25
+> Status: Living document · Version 1.5 · Date: 2026-07-28
 > Chain: [`ideas.md`](ideas.md) → [`prd.md`](prd.md) → **this spec** → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Scope: the whole solution — agent layer (6 ADK agents) + concierge web app (backend +
 > frontend) + shared mock data/state, plus the deployment path.
@@ -61,11 +61,12 @@ standalone ADK agents described in §4 were removed from source (see the scope n
 ai_assist/
 ├── ideas.md prd.md spec.md implementation.md README.md CLAUDE.md
 ├── Dockerfile .dockerignore .gcloudignore            # Cloud Run build (§11)
-├── backend/   pyproject.toml, uv.lock, README.md,
-│              server/{main,agent,tools,logic,store,seed,mock_data,llm,__init__}.py
+├── backend/   pyproject.toml, uv.lock, README.md, .env (gitignored — FRED_API_KEY),
+│              server/{main,agent,tools,logic,store,seed,mock_data,llm,__init__}.py,
+│              server/{market_data,fred_data,spacex_case_study}.py
 └── frontend/  package.json, vite.config.ts, src/{App,api,types,styles,richText}.tsx/ts,
                src/components/*, src/tabs/*, src/pages/*, src/styles/*.css,
-               src/hooks/useFreshTracker.ts
+               src/lib/spacexReportPdf.ts, src/hooks/useFreshTracker.ts
 ```
 
 ## 3. Model & Vertex configuration
@@ -195,6 +196,49 @@ Given attendees, date, window, optional `min_capacity`:
   empty/failed turns return a friendly retry so the UI never breaks. If `backend/static/`
   exists (the Cloud Run image only — see §11), mounts the built frontend there and serves it at
   `/`, so `/` returns `index.html` and any other non-`/api` path falls through to it.
+- **`fred_data.py`** — live macro context from the **FRED API** (Federal Reserve Bank of St.
+  Louis), stdlib-only (`urllib`), reading `FRED_API_KEY` from `backend/.env` via
+  `python-dotenv` (loaded at import time, path resolved relative to the module so it works
+  regardless of CWD). `get_economic_snapshot()` returns fed funds (`DFF`), 10Y/2Y Treasury
+  (`DGS10`/`DGS2`), unemployment (`UNRATE`), and a computed CPI YoY (`CPIAUCSL`, latest vs. a
+  year prior) plus the 10Y–2Y `yield_curve_10y2y` spread. Same live/mock-fallback and
+  `SSIM_DISABLE_LIVE_MARKET` convention as `market_data.py`; the mock snapshot is a real FRED
+  pull captured 2026-07-28, not placeholder numbers.
+- **`market_data.get_price_history(ticker, range_, interval)`** — new function alongside the
+  existing SEC/Yahoo-quote helpers: Yahoo's `v8/finance/chart/{ticker}` endpoint (no
+  cookie/crumb handshake needed, unlike the quote endpoint) for daily close-price history.
+  Live-only (raises on failure) — callers with a specific ticker in mind supply their own mock
+  fallback, since the generic `mock_data` fixtures don't carry time series.
+- **`spacex_case_study.py`** — the **SpaceX (NASDAQ: SPCX) index-inclusion market-intelligence
+  dashboard**, a self-contained case study independent of the FinTechCo customer domain
+  (`mock_data.py`/`seed.py`). SpaceX IPO'd 2026-06-12 (ticker `SPCX`, CIK `0001181412`) and was
+  fast-tracked into the Nasdaq-100 on 2026-07-06 — real, dated facts (see PRD §6.8; reference
+  dates/CIK verified against sec.gov and public reporting as of 2026-07-28).
+  - `get_price_series(ticker)` — SPCX/`^NDX` price history via `market_data.get_price_history`,
+    falling back to a baked real historical snapshot (`_MOCK_SPCX_PRICES`/`_MOCK_NDX_PRICES`,
+    captured 2026-07-28) rather than `mock_data.py`.
+  - `get_filings(limit=11)` — its own SEC EDGAR fetch (broader form set than
+    `market_data.get_sec_filings`: `S-1`, `S-1/A`, `8-A12B`, `424B4`, `S-8`, `8-K`, since these
+    tell the IPO story), deduped by `(form, filed)`, with descriptions preferred from a curated
+    `_CURATED_DESCRIPTIONS` map keyed by accession number (SEC's own
+    `primaryDocDescription` is usually just the form code repeated) and a curated mock fallback
+    otherwise.
+  - `compute_event_study(spcx_prices, ndx_prices)` — offer-price/first-close/peak/latest/
+    inclusion-date prices and their % changes, plus `excess_return_since_ipo_pct` (SPCX return
+    net of the index's own move).
+  - `compose_insights(metrics)` — deterministic, data-driven bullet insights (also the
+    LLM narrative's fallback).
+  - `bank_impact_sections(metrics)` — six categorized "impact on bank operations" sections
+    (ECM/underwriting, index-fund/ETF flows, prime brokerage & securities-based lending,
+    wealth/private banking, corporate banking, risk management), with 1-2 points referencing
+    the computed metrics.
+  - `get_dashboard_payload()` — assembles everything (`timeline`, `prices`, `metrics`,
+    `insights`, `filings`, `fred`, `bank_impact`) for the API/PDF.
+  - `llm.generate_spacex_narrative(payload)` — 2-3 paragraph analyst narrative from the
+    computed metrics, degrading to `payload["insights"]` if Vertex is unavailable (same
+    try/except-compose pattern as `generate_briefing_narrative`).
+  - `store.py` caches `spacex_cache`/`spacex_narrative` (cleared on `reset()`), same pattern as
+    `sec_cache`/`stock_cache`.
 
 ### 5.1 HTTP API
 
@@ -212,6 +256,7 @@ Given attendees, date, window, optional `min_capacity`:
 | GET | `/api/calendar` | → `{date, events}` |
 | GET | `/api/jira` | → `{project, columns, issues}` |
 | GET | `/api/salesforce` | → `{accounts, opportunities, activities}` |
+| GET | `/api/spacex-analytics` | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset` |
 | POST | `/api/reset` | → re-seed store, clear sessions |
 | GET | `/api/health` | → `{status, service, date}` |
 | GET | `/` | deployed container only: built SPA (`index.html`); no-op locally without a frontend build |
@@ -219,9 +264,20 @@ Given attendees, date, window, optional `min_capacity`:
 ## 6. Web app — frontend (`frontend`, React + Vite + TS)
 
 - **Routing (`App.tsx`):** a dependency-free **hash router** (listens to `hashchange`).
-  Default renders the assistant app; `#/jira` and `#/salesforce` render standalone full-page
-  product views (no assistant chrome), opened in a **new browser tab** via header buttons
+  Default renders the assistant app; `#/jira`, `#/salesforce`, and `#/spacex` render standalone
+  full-page views (no assistant chrome), opened in a **new browser tab** via header buttons
   (`window.open('#/jira','_blank')`). Hash routing keeps deep links / static hosting simple.
+- **`pages/SpacexAnalyticsPage.tsx`** — fetches `/api/spacex-analytics` once on mount; renders
+  the analyst narrative, stat tiles, `components/IndexedPriceChart.tsx` (hand-rolled SVG line
+  chart — no charting library — built per the dataviz skill's method: single axis, both series
+  rebased to 100 at the IPO date, validated categorical color pair `#2a78d6`/`#eb6834`, legend +
+  direct end-labels, hover crosshair+tooltip, and a "View as table" accessible fallback),
+  timeline, FRED macro tiles, SEC filings list, and the "Impact on bank operations" card grid.
+  A "Download PDF report" button calls `lib/spacexReportPdf.ts` (`jspdf`, the only new frontend
+  dependency), which redraws the same chart/metrics/timeline/filings/FRED/bank-impact content
+  as a multi-page PDF **entirely client-side** — no server round-trip, no backend PDF
+  dependency (kept off the backend deliberately, matching this project's stated preference for
+  a slim container — see the `market_data.py` stdlib-only rationale in this section).
 - **Assistant app shell:** topbar (brand, date pill, Open Jira ↗, Open Salesforce ↗, Reset);
   single-page body, no in-app tab nav. Holds `refreshKey`, chat `messages`, `sessionId`;
   `bump()` increments `refreshKey`; a 5s interval also bumps → views refetch (FR-L1).

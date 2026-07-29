@@ -1,8 +1,8 @@
-# SSIM Employee Digital Assistant — Product Requirements Document (PRD)
+# FinTechCo Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 1.3 · Date: 2026-07-25
+> Status: Living document · Version 1.5 · Date: 2026-07-28
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
-> Owner: SSIM AI Platform team
+> Owner: FinTechCo AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
 
 > 📦 **Repository scope note (2026-07-25):** This repo now ships **only the concierge web app**
@@ -17,13 +17,13 @@
 
 ## 1. Overview
 
-State Street Investment Management (SSIM) is a digital payment services company — processing
+FinTechCo is a digital payment services company — processing
 ~$4.1T in total payment volume (TPV) annually across card, ACH, and real-time (RTP/FedNow) and
 cross-border rails — that also operates a traditional commercial banking division ($85B in
 commercial deposits, $40B in commercial loans, serving business banking and banking-as-a-service
-partners). SSIM has built a set of standalone AI agents on Google's ADK + Vertex AI. This
-product unifies them into a **single employee digital assistant**: one web surface where an
-SSIM employee gets help across their day — morning briefing, meeting preparation and
+partners). FinTechCo has built a set of standalone AI agents on Google's ADK + Vertex AI. This
+product unifies them into a **single employee digital assistant**: one web surface where a
+FinTechCo employee gets help across their day — morning briefing, meeting preparation and
 scheduling, room booking, project tasks, client/CRM work, RFPs, and sales support — backed by a
 concierge agent that routes to specialists, with structured outputs rendered as rich UI (not raw
 chat text).
@@ -188,6 +188,30 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 ### 6.7 Existing specialist agents (retained)
 - **FR-X1 (P1)** Project Mgmt, RFP, Sales, and Meeting Prep remain independently usable and
   deployable; their capabilities are progressively surfaced in the concierge.
+
+### 6.8 SpaceX index-inclusion market-intelligence dashboard (added 2026-07-28)
+A standalone analytics case study, independent of the FinTechCo demo-customer domain: SpaceX
+(NASDAQ: SPCX) IPO'd 2026-06-12 and was fast-tracked into the Nasdaq-100 on 2026-07-06 under a
+2026 Nasdaq rule change — a real, dated event with genuine market-impact data to analyze.
+- **FR-P1 (P0)** Render as a **separate full page**, opened in a **new browser tab** (same
+  pattern as Jira/Salesforce), reachable via a "SpaceX Analysis ↗" header button.
+- **FR-P2 (P0)** Combine three live data sources — **SEC EDGAR** (SpaceX's IPO/listing filings:
+  S-1, 424B4, 8-A12B, S-8, 8-K), **Yahoo Finance** (SPCX + Nasdaq-100 daily price history), and
+  **FRED** (fed funds, 10Y/2Y Treasury, CPI YoY, unemployment) — each live with a graceful
+  mock/offline fallback tagged `source: "live"|"mock"`, matching the existing market-data
+  convention (§6.2).
+- **FR-P3 (P0)** An indexed price chart (SPCX vs. Nasdaq-100, both rebased to 100 at the IPO
+  date) with IPO/index-inclusion event markers, hover crosshair+tooltip, and a table-view
+  fallback — built per the dataviz skill's method (single axis, validated categorical color
+  pair, legend + direct labels, accessible hover layer).
+- **FR-P4 (P0)** A data-driven event-study narrative (deterministic composed insights, with an
+  optional LLM-generated version that degrades to the composed insights if Vertex is
+  unavailable) and a categorized **"Impact on bank operations"** analysis (equity capital
+  markets, index-fund/ETF flows, prime brokerage & securities-based lending, wealth/private
+  banking, corporate banking, risk management).
+- **FR-P5 (P0)** A **downloadable PDF report** generated client-side (no server round-trip)
+  from the same data the dashboard renders, covering key metrics, the chart, the narrative,
+  timeline, filings, macro snapshot, and bank-impact analysis.
 
 ## 7. UX & surfaces
 

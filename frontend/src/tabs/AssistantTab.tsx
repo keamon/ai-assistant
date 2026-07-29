@@ -152,7 +152,7 @@ function MeetingRow({
                     <span className="k">Account</span>
                     <span>{prep.customer_profile.full_name || prep.customer_profile.name} · {prep.customer_profile.type}</span>
                     <span className="k">Relationship</span>
-                    <span>{prep.customer_profile.ssim_relationship?.status} · {prep.customer_profile.ssim_relationship?.ssim_aum} with SSIM</span>
+                    <span>{prep.customer_profile.ssim_relationship?.status} · {prep.customer_profile.ssim_relationship?.ssim_aum} with FinTechCo</span>
                     <span className="k">Key concerns</span>
                     <span>{(prep.customer_profile.investment_profile?.key_concerns || []).join(", ")}</span>
                   </div>

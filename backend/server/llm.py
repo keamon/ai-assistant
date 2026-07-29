@@ -79,7 +79,7 @@ def generate_briefing_narrative(summary: dict) -> str:
         if lf.get("form"):
             bits.append(f"latest {lf['form']} filed {lf.get('filed','')}")
         watch_lines.append("- " + ", ".join(bits))
-    prompt = f"""You are the SSIM Daily Briefing agent for a State Street Investment Management
+    prompt = f"""You are the FinTechCo Daily Briefing agent for a FinTechCo
 professional at a digital payment services company with a commercial banking division. Write a
 crisp morning briefing (120-160 words, first person addressed to "you", markdown with short bold
 lead-ins, no title header). Do NOT open with a greeting such as "Good morning" — start directly
@@ -138,11 +138,11 @@ def generate_meeting_prep(prep: dict) -> dict:
     docs = [f"- {d.get('name')}" for d in prep.get("related_documents", [])]
     inv = profile.get("investment_profile", {}) or {}
     rel = profile.get("ssim_relationship", {}) or {}
-    prompt = f"""You are the SSIM Meeting Prep agent. Prepare a meeting brief for an SSIM
+    prompt = f"""You are the FinTechCo Meeting Prep agent. Prepare a meeting brief for a FinTechCo
 professional. Return ONLY JSON with keys:
   "objective": string (one sentence),
   "agenda": array of 3-5 short strings,
-  "talking_points": array of 4-6 specific, data-driven strings the SSIM person should make,
+  "talking_points": array of 4-6 specific, data-driven strings the FinTechCo person should make,
   "anticipated_questions": array of 2-4 objects {{"question": string, "answer": string}} —
     likely client/attendee questions with a short suggested answer.
 
@@ -151,7 +151,7 @@ When: {m.get('start')} – {m.get('end')} · {m.get('location','')}
 Attendees: {', '.join(m.get('attendees', []))}
 Description: {m.get('description','')}
 Client: {profile.get('full_name') or profile.get('name') or 'n/a'} — {profile.get('type','')}
-Relationship: {rel.get('status','')}, {rel.get('ssim_aum','')} with SSIM, strategies: {', '.join(rel.get('strategies', []))}
+Relationship: {rel.get('status','')}, {rel.get('ssim_aum','')} with FinTechCo, strategies: {', '.join(rel.get('strategies', []))}
 Key client concerns: {', '.join(inv.get('key_concerns', []))}
 Recent emails:
 {chr(10).join(emails) or '- none'}
@@ -181,3 +181,43 @@ Relevant documents:
                 {"question": "What are next steps and timelines?", "answer": "Confirm owners and dates before close."},
             ],
         }
+
+
+# ─── SpaceX index-inclusion case study narrative ────────────────────────────
+
+def generate_spacex_narrative(payload: dict) -> str:
+    """2-3 paragraph analyst narrative tying the price action, filings, and
+    macro backdrop together. Degrades to the deterministic composed insights
+    (already computed in ``payload["insights"]``) if Vertex is unavailable."""
+    m = payload.get("metrics", {}) or {}
+    fred = (payload.get("fred", {}) or {}).get("series", {}) or {}
+    filings = [f.get("description", f.get("form", "")) for f in payload.get("filings", {}).get("filings", [])[:6]]
+    index_name = payload.get("index_name", "the index")
+
+    prompt = f"""You are a bank market-intelligence analyst writing a short case-study narrative on SpaceX's
+(NASDAQ: SPCX) IPO and its fast-tracked inclusion in the {index_name}, for an internal audience at a
+commercial/investment bank. Write 2-3 tight paragraphs (150-220 words total), no title header, markdown
+with short bold lead-ins where useful. Cover: (1) what happened and when, (2) how the stock traded around
+the index-inclusion event versus the index itself, (3) one paragraph of implications specifically for a
+bank's own operations (trading desks, index-fund flows, lending against concentrated positions, or capital
+markets revenue). Be specific and quantitative using the figures given; do not invent numbers not provided.
+
+IPO price: ${m.get('ipo_price')} on {payload.get('metrics', {}).get('first_close_date')}
+First close: ${m.get('first_close')}
+Peak price: ${m.get('peak_price')} on {m.get('peak_date')}
+Latest price: ${m.get('latest_price')} on {m.get('latest_date')}
+SPCX return since IPO offer price: {m.get('spcx_since_ipo_pct')}%
+{index_name} return over the same window: {m.get('ndx_since_ipo_date_pct')}%
+Excess return vs. index since IPO: {m.get('excess_return_since_ipo_pct')} points
+SPCX move from IPO to index-inclusion date: {m.get('spcx_ipo_to_inclusion_pct')}%
+{index_name} move over that same window: {m.get('ndx_ipo_to_inclusion_pct')}%
+SPCX move since the index-inclusion date: {m.get('spcx_inclusion_to_now_pct')}%
+Recent SEC filings: {', '.join(filings) or 'none'}
+Macro backdrop: fed funds {fred.get('DFF', {}).get('value')}%, 10Y Treasury {fred.get('DGS10', {}).get('value')}%,
+2Y Treasury {fred.get('DGS2', {}).get('value')}%, CPI YoY {fred.get('CPIAUCSL', {}).get('value')}%,
+unemployment {fred.get('UNRATE', {}).get('value')}%
+"""
+    try:
+        return _generate(prompt)
+    except Exception:
+        return "\n\n".join(payload.get("insights", []) or ["Analysis unavailable."])

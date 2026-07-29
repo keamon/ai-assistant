@@ -225,3 +225,97 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
 }
+
+// ─── SpaceX index-inclusion case study ──────────────────────────────────────
+
+export interface PricePoint {
+  date: string;
+  close: number;
+}
+
+export interface PriceSeries {
+  ticker: string;
+  source: "live" | "mock";
+  currency?: string;
+  prices: PricePoint[];
+}
+
+export interface TimelineEvent {
+  date: string;
+  label: string;
+  kind: "filing" | "market" | "index";
+  detail: string;
+}
+
+export interface EventStudyMetrics {
+  ipo_price?: number;
+  first_close?: number;
+  first_close_date?: string;
+  latest_price?: number;
+  latest_date?: string;
+  peak_price?: number;
+  peak_date?: string;
+  inclusion_price?: number;
+  spcx_since_ipo_pct?: number;
+  spcx_since_first_close_pct?: number;
+  spcx_from_peak_pct?: number;
+  ndx_since_ipo_date_pct?: number;
+  excess_return_since_ipo_pct?: number;
+  spcx_ipo_to_inclusion_pct?: number;
+  ndx_ipo_to_inclusion_pct?: number;
+  spcx_inclusion_to_now_pct?: number;
+  ndx_inclusion_to_now_pct?: number;
+}
+
+export interface SpacexFiling {
+  form: string;
+  filed: string;
+  description: string;
+  accession?: string;
+  primary_doc?: string;
+  url?: string;
+}
+
+export interface SpacexFilingsResult {
+  company?: string;
+  ticker?: string;
+  cik?: string;
+  source?: "live" | "mock";
+  filings: SpacexFiling[];
+}
+
+export interface FredSeriesPoint {
+  label: string;
+  units: string;
+  value: number;
+  prior: number;
+  date: string;
+}
+
+export interface FredSnapshot {
+  as_of: string;
+  source: "live" | "mock";
+  series: Record<string, FredSeriesPoint>;
+  yield_curve_10y2y: number;
+}
+
+export interface BankImpactSection {
+  title: string;
+  points: string[];
+}
+
+export interface SpacexAnalytics {
+  generated_at: string;
+  company: string;
+  ticker: string;
+  index_name: string;
+  index_ticker: string;
+  timeline: TimelineEvent[];
+  prices: { spcx: PriceSeries; index: PriceSeries };
+  metrics: EventStudyMetrics;
+  insights: string[];
+  filings: SpacexFilingsResult;
+  fred: FredSnapshot;
+  bank_impact: BankImpactSection[];
+  narrative: string;
+}

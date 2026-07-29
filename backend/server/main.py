@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from server import llm, logic
+from server import llm, logic, spacex_case_study
 from server.store import STORE
 
 logger = logging.getLogger("ssim_assistant")
@@ -199,6 +199,17 @@ def jira() -> dict:
 @app.get("/api/salesforce")
 def salesforce() -> dict:
     return STORE.salesforce
+
+
+@app.get("/api/spacex-analytics")
+def spacex_analytics() -> dict:
+    """SpaceX index-inclusion market-impact case study (SEC EDGAR + Yahoo
+    Finance + FRED), cached for the process lifetime (cleared on reset)."""
+    if STORE.spacex_cache is None:
+        STORE.spacex_cache = spacex_case_study.get_dashboard_payload()
+    if STORE.spacex_narrative is None:
+        STORE.spacex_narrative = llm.generate_spacex_narrative(STORE.spacex_cache)
+    return {**STORE.spacex_cache, "narrative": STORE.spacex_narrative}
 
 
 @app.post("/api/reset")

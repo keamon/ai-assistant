@@ -1,6 +1,6 @@
-# SSIM Employee Digital Assistant — Implementation Plan & Checklist
+# FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.4 · Date: 2026-07-25
+> Status: Living document · Version 1.6 · Date: 2026-07-28
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -221,7 +221,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
       a digital payment services company with a traditional commercial banking division, per
       user request. Company name/brand ("State Street Investment Management (SSIM)",
       `@statestreet.com`) intentionally kept unchanged — only business content/terminology
-      changed.
+      changed. *(Superseded by Phase 6 below — the brand was later renamed to FinTechCo.)*
 - [x] Reused the existing "$4.1T" headline figure, redefined as total payment volume (TPV)
       processed annually (card/ACH/RTP-FedNow/cross-border), plus a new $85B commercial
       deposits / $40B commercial loans banking-division figure.
@@ -426,6 +426,108 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
       Verified: `uv run pytest` still 49/49 (no test asserted the old attendee counts); room
       assignment and meeting-prep endpoints re-verified live with the new (smaller) attendee
       lists — no errors, no UI text still refers to the removed address.
+
+---
+
+## Phase 8 — company rebrand: SSIM / State Street → FinTechCo  ✅ (delivered 2026-07-25)
+
+- [x] Renamed the fictional company brand from "State Street Investment Management (SSIM)" to
+      **FinTechCo** everywhere it is displayed in the app or its mock content, per user request
+      (this reverses the Phase 5 decision to keep the brand unchanged). Internal-only Python
+      identifiers were deliberately left as-is (not user-visible): the `ssim_relationship` /
+      `ssim_aum` / `ssim_payments_banking_snapshot` dict keys in `mock_data.py`/`llm.py`/
+      frontend, the `ssim_assistant` ADK agent/app name and logger in `agent.py`/`main.py`, the
+      `SSIM_DISABLE_LIVE_MARKET` env var, and module docstrings/comments.
+  - **Frontend:** `index.html` tab title, `App.tsx` header brand + subtitle, `Chat.tsx` panel
+    header, `JiraPage.tsx` project name/crumb/board title/avatar initials ("SS" → "FT"),
+    `AssistantTab.tsx` client-profile "with SSIM" label.
+  - **Backend mock data (`mock_data.py`):** every displayed "SSIM" occurrence in email
+    subjects/snippets, Drive document names/content, and customer `relationship_manager` /
+    `primary_contact` fields → "FinTechCo"; module comments updated for consistency.
+  - **Jira demo data (`seed.py`):** project code `SSIM` → `FTC`, issue keys `SSIM-101..105` →
+    `FTC-101..105`; matching references updated in `agent.py`'s system prompt and `tools.py`'s
+    `create_jira_tasks` docstring so the concierge agent creates new tasks under the same code.
+  - **LLM prompts (`agent.py`, `llm.py`):** system prompt and the daily-briefing / meeting-prep
+    generation prompts now refer to "FinTechCo" instead of "SSIM" / "State Street Investment
+    Management," since this text can surface directly in chat replies and the briefing
+    narrative.
+  - **Attendee/employee email domain:** `@statestreet.com` → `@fintechco.com` across
+    `MOCK_CALENDAR_EVENTS` attendees, `MOCK_EMAILS` from/to, `MOCK_EMPLOYEE_LOCATIONS`,
+    `MOCK_ROOM_BOOKINGS` organizers, and `MOCK_MEETING_SUGGESTIONS` attendees (29 addresses).
+  - **Tests:** `test_logic.py`'s `create_jira_tasks` test now passes `"FTC"` as the project code.
+  - Verified: `python -m ast` syntax-checked all edited backend files; loaded `seed.build_seed()`
+    directly and confirmed the Jira project is `FTC` with `FTC-10x` keys, attendee/email domains
+    are `fintechco.com` (no `statestreet.com` left), and a full JSON dump of the seed contains no
+    "SSIM" or "State Street" substring. `npm run build` (tsc + vite) passed clean.
+
+---
+
+## Phase 9 — SpaceX index-inclusion analytics dashboard  ✅ (delivered 2026-07-28)
+
+- [x] **Verified the premise before building anything.** SpaceX (NASDAQ: SPCX) IPO'd
+      2026-06-12 at $135/share (~$1.75T valuation, ~$75B raised) and was fast-tracked into the
+      Nasdaq-100 on 2026-07-06 under a 2026 Nasdaq rule change (top-40-by-market-cap new
+      listings can enter after 15 trading days) — confirmed via web search, since this postdates
+      the assistant's knowledge cutoff. Not eligible for the S&P 500 before ~mid-2027 (S&P
+      declined to fast-track mega-IPOs; requires 4 consecutive GAAP-profitable quarters, and
+      SpaceX posted a $4.9B net loss in its most recent fiscal year). CIK `0001181412` resolved
+      live from `sec.gov/files/company_tickers.json`.
+- [x] **`backend/.env`** (gitignored) added with `FRED_API_KEY` for the FRED API.
+- [x] **`backend/server/fred_data.py`** (new) — live FRED snapshot (fed funds, 10Y/2Y Treasury,
+      unemployment, computed CPI YoY, 10Y–2Y curve spread), `python-dotenv`-loaded key,
+      live/mock fallback matching `market_data.py`'s convention. Mock snapshot baked from a real
+      FRED pull captured 2026-07-28.
+- [x] **`backend/server/market_data.py`** — added `get_price_history(ticker, range_, interval)`
+      (Yahoo `v8/finance/chart`, no crumb needed) for daily close-price series; live-only, no
+      built-in mock (case-study-specific callers supply their own).
+- [x] **`backend/server/spacex_case_study.py`** (new) — SEC EDGAR filings (S-1/S-1/A/8-A12B/
+      424B4/S-8/8-K, deduped, curated human-readable descriptions keyed by accession number
+      since SEC's own `primaryDocDescription` just repeats the form code), SPCX/Nasdaq-100 price
+      series (mock fallback baked from a real Yahoo pull captured 2026-07-28), an event-study
+      metrics calculator (offer/peak/latest/inclusion-date prices, excess return vs. the index),
+      deterministic composed insights, and six categorized "impact on bank operations" sections
+      (ECM/underwriting, index-fund/ETF flows, prime brokerage & securities-based lending,
+      wealth/private banking, corporate banking, risk management).
+  - **Real numbers found:** SPCX peaked at $211.39 on 2026-06-16 (+56.6% vs. offer, days after
+    the IPO, on inclusion speculation), then sold off through the actual 2026-07-06 inclusion
+    date and after — trading $116.41 (-13.8% vs. the $135 offer price) as of 2026-07-28, a
+    "buy the rumor, sell the news" pattern with ~7.5pp of underperformance vs. the Nasdaq-100
+    net of the index's own (separate, broader market) pullback over the same window.
+- [x] **`backend/server/llm.py`** — added `generate_spacex_narrative(payload)`, a 2-3 paragraph
+      analyst narrative from the computed metrics; degrades to `payload["insights"]` if Vertex
+      is unavailable (same pattern as `generate_briefing_narrative`).
+- [x] **`backend/server/main.py` + `store.py`** — `GET /api/spacex-analytics`, cached in
+      `STORE.spacex_cache`/`spacex_narrative` (cleared on `/api/reset`).
+- [x] **Frontend:** `pages/SpacexAnalyticsPage.tsx` (new standalone page, `#/spacex` route,
+      "SpaceX Analysis ↗" header button next to Jira/Salesforce) — analyst narrative, stat
+      tiles, `components/IndexedPriceChart.tsx` (hand-rolled SVG chart, no charting library),
+      timeline, FRED macro tiles, SEC filings list, and the bank-operations-impact card grid.
+  - **Followed the `dataviz` skill's method** (loaded before writing chart code): single axis
+    (both series rebased to 100 at the IPO date, never dual-axis), categorical color pair
+    validated via `scripts/validate_palette.js` against the app's white surface (`#2a78d6`/
+    `#eb6834` — the reference palette's slots 1–2; the app's own `--navy` failed the
+    lightness/chroma-floor checks for a chart mark), legend + direct end-labels, a hover
+    crosshair+tooltip, and a "View as table" fallback.
+  - Fixed a bug found in review: a stat tile inverted the sign on "% from peak" (showed a
+    misleading green "+44.9%" for what is actually a decline) — corrected to show the true
+    negative delta.
+- [x] **PDF report:** `frontend/src/lib/spacexReportPdf.ts` + `jspdf` (new frontend dependency,
+      the only new dependency this phase added) — generates a multi-page PDF **entirely
+      client-side** (no backend PDF dependency/endpoint), redrawing the chart, key metrics,
+      narrative, timeline, filings, FRED snapshot, and bank-impact sections. Kept off the
+      backend deliberately, consistent with this project's stated preference for a slim
+      container (see the `market_data.py` stdlib-only rationale).
+- [x] **Bug fix (unrelated to this feature, found while grepping for stale references):**
+      `logic.py`'s `_INTERNAL_DOMAINS` still checked attendee domains against `statestreet.com`
+      after the Phase 8 rebrand changed the mock data to `fintechco.com` — every meeting was
+      misclassified as a customer/external meeting. Fixed to `fintechco.com`.
+- [x] **Tests:** `backend/tests/test_spacex_case_study.py` (new, 10 tests) — mock-path coverage
+      for `fred_data.get_economic_snapshot`, `spacex_case_study`'s price/filings/event-study/
+      insights/bank-impact functions, and the `/api/spacex-analytics` endpoint (incl. caching).
+      Full suite: 59/59 backend (`uv run pytest`), 5/5 frontend (`npm test`), `npm run build`
+      clean. Verified live in-browser end-to-end (chart hover/tooltip/table-toggle, PDF
+      download — the downloaded PDF was read back and its contents checked).
+- [x] Built on a dedicated branch (`feature/spacex-analytics-dashboard`), per user request.
 
 ## Backlog / tech debt
 

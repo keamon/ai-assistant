@@ -77,9 +77,9 @@ export default function JiraPage() {
         {/* project sidebar */}
         <aside className="jira-side">
           <div className="jira-proj">
-            <span className="jira-proj-ava">SS</span>
+            <span className="jira-proj-ava">FT</span>
             <div>
-              <div className="jira-proj-name">SSIM</div>
+              <div className="jira-proj-name">FinTechCo</div>
               <div className="jira-proj-type">Software project</div>
             </div>
           </div>
@@ -95,9 +95,9 @@ export default function JiraPage() {
 
         {/* board */}
         <main className="jira-main">
-          <div className="jira-crumb">Projects / SSIM / Board</div>
+          <div className="jira-crumb">Projects / FinTechCo / Board</div>
           <div className="jira-board-head">
-            <h1>SSIM board</h1>
+            <h1>FinTechCo board</h1>
             <div className="jira-avatars">
               {members.map((m) => (
                 <span key={m} className="jira-avatar sm" title={m} style={{ background: avatarColor(m) }}>
