@@ -13,32 +13,42 @@
 # limitations under the License.
 
 """
-LLM generation helpers for the SSIM assistant demo: a morning-briefing narrative
-and per-meeting prep + talking points. Uses gemini-3.5-flash on Vertex (us).
+LLM generation helpers for the FinTechCo assistant demo: a morning-briefing narrative
+and per-meeting prep + talking points. Uses Claude Haiku 4.5 via the Anthropic API.
 Callers cache the results in the store; every function degrades gracefully to
-composed text if Vertex is unavailable.
+composed text if the Anthropic API is unavailable.
 """
 
 import json
+from pathlib import Path
 
-_MODEL = "gemini-3.5-flash"
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except Exception:
+    pass
+
+_MODEL = "claude-haiku-4-5-20251001"
 _client = None
 
 
 def _get_client():
     global _client
     if _client is None:
-        import google.auth
-        from google import genai
+        import anthropic
 
-        _, project = google.auth.default()
-        _client = genai.Client(vertexai=True, project=project, location="us")
+        _client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
     return _client
 
 
 def _generate(prompt: str) -> str:
-    resp = _get_client().models.generate_content(model=_MODEL, contents=prompt)
-    return (resp.text or "").strip()
+    resp = _get_client().messages.create(
+        model=_MODEL,
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return (resp.content[0].text or "").strip()
 
 
 def _extract_json(text: str):

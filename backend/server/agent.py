@@ -19,21 +19,21 @@ demo (briefing, meeting prep, room booking/scheduling, Jira, Salesforce). Its
 tools mutate the shared store, so actions taken here surface in the other tabs.
 """
 
-import os
+from pathlib import Path
 
-import google.auth
 from google.adk.agents import Agent
-from google.adk.models import Gemini
-from google.genai import types
+from google.adk.models.lite_llm import LiteLlm
 
 from server.tools import ALL_TOOLS
 
-_, project_id = google.auth.default()
-os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-# gemini-3.5-flash is served from the US multi-region ("us"); it 404s in specific
-# US regions (us-central1/us-east4) and is quota-limited (429) at "global".
-os.environ["GOOGLE_CLOUD_LOCATION"] = "us"
-os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except Exception:
+    pass
+
+_MODEL = "anthropic/claude-haiku-4-5-20251001"
 
 SYSTEM_PROMPT = """You are the FinTechCo Employee Digital Assistant — a single concierge for
 FinTechCo staff. You combine several specialist capabilities:
@@ -70,10 +70,7 @@ Tone: professional, efficient, action-oriented.
 
 root_agent = Agent(
     name="ssim_assistant",
-    model=Gemini(
-        model="gemini-3.5-flash",
-        retry_options=types.HttpRetryOptions(attempts=3),
-    ),
+    model=LiteLlm(model=_MODEL),
     instruction=SYSTEM_PROMPT,
     tools=ALL_TOOLS,
 )
