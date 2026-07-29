@@ -67,19 +67,28 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks}    # React
   JSON-string + `try:`/`except:` mock-fallback (`"source": "mock"`) tool pattern the concierge
   agent still follows.
 
-## Model / Vertex config (important)
+## Model config (important)
 
-- Model: **`gemini-3.5-flash`**; location: **`GOOGLE_CLOUD_LOCATION="us"`** (US multi-region);
-  `GOOGLE_GENAI_USE_VERTEXAI="True"`; project from `google.auth.default()` (`logical-vim-478515-b1`).
-- **Do not** use `gemini-2.0-flash-001` (404 for this project) or `global`/`us-central1` for
-  `gemini-3.5-flash` (429 / 404 respectively). Details in memory `vertex-gemini-model-availability`.
-- Don't change the model without being asked; if a 404 appears, check location before the model.
+- Model: **`claude-haiku-4-5-20251001`** (Claude Haiku 4.5), called directly via the
+  **Anthropic API** (not Vertex) — `ANTHROPIC_API_KEY` in `backend/.env` (gitignored, never
+  committed).
+- **`agent.py`** wires the concierge `Agent`'s model via `google.adk.models.lite_llm.LiteLlm(
+  model="anthropic/claude-haiku-4-5-20251001")` — requires the `litellm` + `anthropic`
+  packages (added as direct dependencies in `pyproject.toml`; deliberately **not**
+  `google-adk[extensions]`, which pulls in ~15 unrelated packages like crewai/docker/
+  kubernetes/langgraph).
+- **`llm.py`** (briefing narrative + meeting-prep generation) calls `anthropic.Anthropic()`
+  directly — same model, same try/except-compose-fallback shape as before.
+- Both `agent.py` and `llm.py` load `backend/.env` themselves (`python-dotenv`, path resolved
+  relative to the module) so the key is available regardless of CWD.
+- Don't change the model without being asked; if you do change it, update this section.
 
 ## Run it locally
 
 - **Web app:** backend `cd backend && uv run uvicorn server.main:app --reload --port 8000`;
   frontend `cd frontend && npm install && npm run dev` → http://localhost:5173
-  (Vite proxies `/api` → :8000). Chat needs Vertex ADC; read endpoints don't.
+  (Vite proxies `/api` → :8000). Chat and the auto-generated narrative/prep both need
+  `ANTHROPIC_API_KEY` set (in `backend/.env`); other read endpoints don't.
 
 ## Testing
 
