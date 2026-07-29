@@ -49,9 +49,6 @@ class Store:
         # Live market-data caches (SEC filings + stock snapshots), cleared on reset
         self.sec_cache: dict[str, dict] = {}
         self.stock_cache: dict[str, dict] = {}
-        # SpaceX index-inclusion case-study cache (data payload + LLM narrative)
-        self.spacex_cache: dict | None = None
-        self.spacex_narrative: str | None = None
 
 
 # Single process-wide instance.

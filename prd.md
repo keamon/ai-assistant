@@ -189,7 +189,14 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 - **FR-X1 (P1)** Project Mgmt, RFP, Sales, and Meeting Prep remain independently usable and
   deployable; their capabilities are progressively surfaced in the concierge.
 
-### 6.8 SpaceX index-inclusion market-intelligence dashboard (added 2026-07-28)
+### 6.8 SpaceX index-inclusion market-intelligence dashboard (target spec — not yet built on this branch)
+> 🎬 **Demo starting point (2026-07-29):** this branch intentionally does NOT implement §6.8 yet.
+> It keeps the reusable pieces a build needs — `server/spacex_reference_data.py` (pre-verified
+> real facts), `server/fred_data.py`, `market_data.get_price_history`,
+> `components/IndexedPriceChart.tsx`, and `lib/caseStudyReportPdf.ts` — so the feature below can
+> be built live from a short prompt. The fully-built, tested, documented version lives on
+> `feature/spacex-analytics-dashboard`.
+
 A standalone analytics case study, independent of the FinTechCo demo-customer domain: SpaceX
 (NASDAQ: SPCX) IPO'd 2026-06-12 and was fast-tracked into the Nasdaq-100 on 2026-07-06 under a
 2026 Nasdaq rule change — a real, dated event with genuine market-impact data to analyze.

@@ -8,7 +8,6 @@ import type {
   Room,
   StockSnapshot,
   SecFilingsResult,
-  SpacexAnalytics,
 } from "./types";
 
 async function get<T>(path: string): Promise<T> {
@@ -61,5 +60,4 @@ export const api = {
     room_id?: string;
   }) => post<any>("/api/schedule", body),
   reset: () => post<{ reset: boolean; date: string }>("/api/reset", {}),
-  spacexAnalytics: () => get<SpacexAnalytics>("/api/spacex-analytics"),
 };
