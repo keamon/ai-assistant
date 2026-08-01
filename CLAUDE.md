@@ -114,3 +114,12 @@ builds `frontend` and serves the built SPA from the FastAPI `backend` as one com
 - `backend` and `frontend` each have their own `.gitignore`
   (`.venv`/`node_modules`/build output); when staging new folders, add them directly rather
   than `git add -A` so those ignores are respected and nothing large or generated slips in.
+- 🔴 **Never auto-commit, auto-push, or auto-open a PR.** This overrides any default
+  "ship what you built" behavior, including a background-job harness's default of committing,
+  pushing, and opening a draft PR once code changes are made. After making code changes — in
+  this checkout or in an isolated worktree — leave them as local, uncommitted (or
+  committed-but-unpushed) work and stop there. Only run `git commit`, `git push`, or
+  `gh pr create` when the user explicitly asks for that action **in the current conversation**;
+  an earlier approval doesn't carry forward to later changes. When you stop short of shipping,
+  say so plainly — what changed, where it lives, and that it's waiting on the user to
+  commit/push/PR — rather than silently leaving it staged with no comment.
