@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.8 · Date: 2026-08-01
+> Status: Living document · Version 1.9 · Date: 2026-08-01
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -560,6 +560,14 @@ a Google Search scrape fallback — that depended on it functionally, not just b
       `pyproject.toml` remains the source of truth — regenerate with
       `uv export --no-hashes --no-dev -o ../requirements.txt` (from `backend/`) if dependencies
       change.
+- [x] **Added `.claude/skills/add-concierge-tool/SKILL.md`** — scaffolds a new concierge tool
+      (logic.py → tools.py → agent.py registration) following the exact conventions in this
+      doc's "Conventions" section, and prompts for the matching prd/spec/implementation update.
+- [x] **Added `.claude/agents/conventions-reviewer.md`** — read-only subagent that reviews a
+      diff against this repo's specific `CLAUDE.md` conventions (tool JSON-string shape,
+      live/mock fallback tagging, `[Variable]` placeholders, `mock_data.py` single source of
+      truth, doc-sync completeness). Complements the existing `docs-sync-check.sh` Stop hook,
+      which only checks *that* docs changed, not whether the code matches conventions.
 
 ## Backlog / tech debt
 
