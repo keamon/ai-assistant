@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
 # limitations under the License.
 
 """
-Seed data for the SSIM assistant demo store.
+Seed data for the FinTechCo assistant demo store.
 
-The SSIM domain data (calendar, emails, market, Drive docs, customer profiles,
+The FinTechCo domain data (calendar, emails, market, Drive docs, customer profiles,
 rooms, seat locations, meeting suggestions) is the single source of truth living
 in :mod:`server.mock_data`. Jira and Salesforce state are demo-only and defined
 here.

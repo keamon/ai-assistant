@@ -1,15 +1,13 @@
 [project]
-name = "ssim-assistant-backend"
+name = "fintechco-assistant-backend"
 version = "0.1.0"
-description = "FastAPI backend for the SSIM Employee Digital Assistant demo (ADK + shared mock store)"
+description = "FastAPI backend for the FinTechCo Employee Digital Assistant demo (ADK + shared mock store)"
 requires-python = ">=3.10,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.0.0",
     "google-adk>=1.15.0,<2.0.0",
-    "google-cloud-aiplatform[agent-engines]>=1.130.0",
-    "google-auth>=2.0.0",
     "python-dotenv>=1.0.0",
     "anthropic>=0.78,<1.0",
     "litellm>=1.83.7,<=1.83.14",
@@ -29,7 +27,7 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["."]  # so `import server` resolves from the backend root
 addopts = "-q"
-# Tests run hermetically (no Vertex, no network) via the SSIM_DISABLE_LIVE_MARKET
+# Tests run hermetically (no live model calls, no network) via the DEMO_DISABLE_LIVE_MARKET
 # env var set in tests/conftest.py, so the market-data layer always uses fixtures.
 
 [build-system]

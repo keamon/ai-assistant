@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 1.5 · Date: 2026-07-28
+> Status: Living document · Version 1.6 · Date: 2026-08-01
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Owner: FinTechCo AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
@@ -21,7 +21,7 @@ FinTechCo is a digital payment services company — processing
 ~$4.1T in total payment volume (TPV) annually across card, ACH, and real-time (RTP/FedNow) and
 cross-border rails — that also operates a traditional commercial banking division ($85B in
 commercial deposits, $40B in commercial loans, serving business banking and banking-as-a-service
-partners). FinTechCo has built a set of standalone AI agents on Google's ADK + Vertex AI. This
+partners). FinTechCo has built a set of standalone AI agents on ADK. This
 product unifies them into a **single employee digital assistant**: one web surface where a
 FinTechCo employee gets help across their day — morning briefing, meeting preparation and
 scheduling, room booking, project tasks, client/CRM work, RFPs, and sales support — backed by a
@@ -89,9 +89,8 @@ requirements behind each capability, and how success is measured.
   companies** (Williams-Sonoma / NYSE: WSM, Etsy / Nasdaq: ETSY, Dave / Nasdaq: DAVE; Glenbrook
   Partners stays private), and the assistant pulls **live SEC EDGAR filings** (10-K / 10-Q / 8-K)
   and a **Yahoo Finance market snapshot** (price, move, next earnings, headlines) — surfaced in
-  the briefing, meeting prep, and via two chat tools. Live APIs with a **Google Search fallback**
-  for stock price/move (when Yahoo is unreachable) and graceful mock fallback beyond that; the
-  UI shows the data only, no live/mock provenance label.
+  the briefing, meeting prep, and via two chat tools. Live APIs with graceful mock fallback;
+  the UI shows the data only, no live/mock provenance label.
 - **Automated tests + CI**: a backend pytest suite and a frontend Vitest suite run in GitHub
   Actions on every PR/push so changes are tested before merge.
 - Existing agents remain independently deployable (Project Mgmt, RFP, Sales, Meeting Prep).
@@ -146,9 +145,8 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
   companies, the briefing shows a **Customer market watch** card (share price + daily move,
   next earnings date, latest SEC filing link, a recent headline) and meeting prep for a public
   client is enriched with a **market snapshot + latest SEC filing**. Data is fetched **live**
-  from **SEC EDGAR** (10-K / 10-Q / 8-K) and **Yahoo Finance**; if Yahoo is unreachable, a
-  **Google Search fallback** scrapes a live price + move before resorting to mock, so the
-  card shows real market movement whenever any live source is reachable. Every response is
+  from **SEC EDGAR** (10-K / 10-Q / 8-K) and **Yahoo Finance**, with a graceful mock fallback
+  when a live source is unreachable. Every response is
   still tagged internally `source: "live"` or `"mock"` for the API/tests, but **the UI does not
   display that provenance label** — the card shows the data itself, not its source. Private
   customers (e.g. Glenbrook Partners) correctly report "no public filings." The same data is
@@ -212,7 +210,7 @@ A standalone analytics case study, independent of the FinTechCo demo-customer do
   fallback — built per the dataviz skill's method (single axis, validated categorical color
   pair, legend + direct labels, accessible hover layer).
 - **FR-P4 (P0)** A data-driven event-study narrative (deterministic composed insights, with an
-  optional LLM-generated version that degrades to the composed insights if Vertex is
+  optional LLM-generated version that degrades to the composed insights if the model is
   unavailable) and a categorized **"Impact on bank operations"** analysis (equity capital
   markets, index-fund/ETF flows, prime brokerage & securities-based lending, wealth/private
   banking, corporate banking, risk management).
@@ -260,17 +258,16 @@ A standalone analytics case study, independent of the FinTechCo demo-customer do
 
 ## 10. Dependencies & assumptions
 
-- Google ADK + Vertex AI; GCP project `logical-vim-478515-b1`.
-- Model: `gemini-3.5-flash` served from the **`us`** multi-region (see spec §7 and memory —
-  `gemini-2.0-flash-001` is retired/404 for this project).
-- Local dev uses Application Default Credentials; v1 operates on mock data with graceful
-  fallback to real Google APIs where wired.
+- ADK for the agent layer; Claude Haiku 4.5 via the Anthropic API for chat and narrative
+  generation (see spec §3 and CLAUDE.md).
+- Local dev uses `ANTHROPIC_API_KEY` in `backend/.env`; v1 operates on mock data with graceful
+  fallback to real external APIs where wired.
 
 ## 11. Risks
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Model availability/quota (429/404 by region) | Chat fails | Pin `gemini-3.5-flash`@`us`; graceful retry; read endpoints model-independent |
+| Model availability/quota | Chat fails | Graceful retry; read endpoints model-independent |
 | Mock↔real data drift | Demo/real mismatch | Single source of truth (`backend/server/mock_data.py`); define data contracts (spec §6) |
 | Write-action safety | Wrong writes to CRM/Jira | Confirm-before-write; roadmap: audit trail + authz |
 | Per-agent duplication (room logic) | Maintenance cost | Accepted for v1 (deployability > DRY); roadmap: shared service layer |

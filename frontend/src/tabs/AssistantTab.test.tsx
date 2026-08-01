@@ -11,7 +11,7 @@ const BRIEFING = {
   upcoming_events: [],
   priority_emails: [],
   starred_emails: [],
-  market: { ssim_payments_banking_snapshot: { total_tpv: "$11.2B", tpv_change_dod: "+2%" } },
+  market: { fintechco_payments_banking_snapshot: { total_tpv: "$11.2B", tpv_change_dod: "+2%" } },
   suggestions: [],
   public_company_watch: [
     {

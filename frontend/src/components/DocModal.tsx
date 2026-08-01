@@ -20,7 +20,7 @@ export default function DocModal({ docId, onClose }: { docId: string; onClose: (
           <pre className="doc-content">{doc.content}</pre>
           {doc.webViewLink && (
             <a className="doclink" href={doc.webViewLink} target="_blank" rel="noreferrer">
-              Open in Google Drive ↗
+              Open document ↗
             </a>
           )}
         </>

@@ -1,5 +1,5 @@
 # ruff: noqa
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-SSIM concierge assistant — a single ADK agent that fronts every capability in the
+FinTechCo concierge assistant — a single ADK agent that fronts every capability in the
 demo (briefing, meeting prep, room booking/scheduling, Jira, Salesforce). Its
 tools mutate the shared store, so actions taken here surface in the other tabs.
 """
@@ -69,7 +69,7 @@ Tone: professional, efficient, action-oriented.
 """
 
 root_agent = Agent(
-    name="ssim_assistant",
+    name="concierge_assistant",
     model=LiteLlm(model=_MODEL),
     instruction=SYSTEM_PROMPT,
     tools=ALL_TOOLS,

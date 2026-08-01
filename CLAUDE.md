@@ -1,14 +1,13 @@
-# CLAUDE.md — SSIM Employee Digital Assistant
+# CLAUDE.md — FinTechCo Employee Digital Assistant
 
 Project guidance for Claude Code working in this repo. These instructions override default
 behavior; follow them exactly.
 
 ## What this repo is
 
-The **SSIM Employee Digital Assistant**: a concierge web app for State Street Investment
-Management (a digital payments company with a commercial banking division — ~$4.1T annual
-payment volume). It's a FastAPI backend running an in-process Google ADK **concierge agent**
-plus a React frontend.
+The **FinTechCo Employee Digital Assistant**: a concierge web app for FinTechCo, a digital
+payments company with a commercial banking division (~$4.1T annual payment volume). It's a
+FastAPI backend running an in-process ADK **concierge agent** plus a React frontend.
 
 > 📦 The project began as **6 standalone ADK agents** (daily briefing, meeting prep, meeting
 > rooms, project management, RFP, sales) unified by the web app. Those agents were **removed
@@ -70,8 +69,7 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks}    # React
 ## Model config (important)
 
 - Model: **`claude-haiku-4-5-20251001`** (Claude Haiku 4.5), called directly via the
-  **Anthropic API** (not Vertex) — `ANTHROPIC_API_KEY` in `backend/.env` (gitignored, never
-  committed).
+  **Anthropic API** — `ANTHROPIC_API_KEY` in `backend/.env` (gitignored, never committed).
 - **`agent.py`** wires the concierge `Agent`'s model via `google.adk.models.lite_llm.LiteLlm(
   model="anthropic/claude-haiku-4-5-20251001")` — requires the `litellm` + `anthropic`
   packages (added as direct dependencies in `pyproject.toml`; deliberately **not**
@@ -111,8 +109,8 @@ builds `frontend` and serves the built SPA from the FastAPI `backend` as one com
 
 ## Source control
 
-- GitHub: [chenw-google/ai_assistant](https://github.com/chenw-google/ai_assistant) — remote
-  `origin`, single branch `main`. Push here when asked to sync/push changes.
+- GitHub: [keamon/ai-assistant](https://github.com/keamon/ai-assistant) — remote `origin`.
+  Push here when asked to sync/push changes.
 - `backend` and `frontend` each have their own `.gitignore`
   (`.venv`/`node_modules`/build output); when staging new folders, add them directly rather
   than `git add -A` so those ignores are respected and nothing large or generated slips in.

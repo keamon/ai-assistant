@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ Louis) for the SpaceX index-inclusion case study.
 
 Design mirrors :mod:`server.market_data`: live with graceful mock fallback,
 each response tagged ``"source": "live"`` or ``"source": "mock"``, and
-``SSIM_DISABLE_LIVE_MARKET=1`` forces the offline path (used by tests/CI).
+``DEMO_DISABLE_LIVE_MARKET=1`` forces the offline path (used by tests/CI).
 Stdlib-only (``urllib``) plus ``python-dotenv`` to read ``FRED_API_KEY`` from
 ``backend/.env`` — no ``pandas`` or FRED SDK dependency.
 """
@@ -71,7 +71,7 @@ _MOCK_SNAPSHOT = {
 
 
 def _live_disabled() -> bool:
-    return os.getenv("SSIM_DISABLE_LIVE_MARKET", "").strip().lower() in ("1", "true", "yes")
+    return os.getenv("DEMO_DISABLE_LIVE_MARKET", "").strip().lower() in ("1", "true", "yes")
 
 
 def _r(x, n=2):

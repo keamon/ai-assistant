@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Shared, in-process mutable state for the SSIM assistant demo.
+Shared, in-process mutable state for the FinTechCo assistant demo.
 
 Both the agent tools (writes) and the FastAPI read endpoints (reads) operate on
 the single ``STORE`` instance, so an assistant action is immediately reflected in

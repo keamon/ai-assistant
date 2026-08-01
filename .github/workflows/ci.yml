@@ -20,8 +20,8 @@ jobs:
         working-directory: backend
     env:
       # Force the market-data layer offline so tests are hermetic (no SEC/Yahoo,
-      # no Vertex); every fetch returns the baked-in mock fixtures.
-      SSIM_DISABLE_LIVE_MARKET: "1"
+      # no live model calls); every fetch returns the baked-in mock fixtures.
+      DEMO_DISABLE_LIVE_MARKET: "1"
     steps:
       - uses: actions/checkout@v4
 

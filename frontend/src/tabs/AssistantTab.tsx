@@ -152,7 +152,7 @@ function MeetingRow({
                     <span className="k">Account</span>
                     <span>{prep.customer_profile.full_name || prep.customer_profile.name} · {prep.customer_profile.type}</span>
                     <span className="k">Relationship</span>
-                    <span>{prep.customer_profile.ssim_relationship?.status} · {prep.customer_profile.ssim_relationship?.ssim_aum} with FinTechCo</span>
+                    <span>{prep.customer_profile.fintechco_relationship?.status} · {prep.customer_profile.fintechco_relationship?.fintechco_aum} with FinTechCo</span>
                     <span className="k">Key concerns</span>
                     <span>{(prep.customer_profile.investment_profile?.key_concerns || []).join(", ")}</span>
                   </div>
@@ -317,7 +317,7 @@ export default function AssistantTab({ refreshKey, onAction }: { refreshKey: num
   }, [refreshKey]);
 
   if (!b) return <div className="spin">Loading your briefing…</div>;
-  const tpv = b.market?.ssim_payments_banking_snapshot?.total_tpv || "$11.2B";
+  const tpv = b.market?.fintechco_payments_banking_snapshot?.total_tpv || "$11.2B";
 
   return (
     <div>
@@ -325,7 +325,7 @@ export default function AssistantTab({ refreshKey, onAction }: { refreshKey: num
         <div className="stat">
           <div className="label">Payment Volume (Yesterday)</div>
           <div className="value">{tpv}</div>
-          <div className="delta">{b.market?.ssim_payments_banking_snapshot?.tpv_change_dod || ""}</div>
+          <div className="delta">{b.market?.fintechco_payments_banking_snapshot?.tpv_change_dod || ""}</div>
         </div>
         <div className="stat">
           <div className="label">Meetings today</div>

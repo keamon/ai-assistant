@@ -1,4 +1,4 @@
-# SSIM Employee Digital Assistant — Ideas / Brainstorm
+# FinTechCo Employee Digital Assistant — Ideas / Brainstorm
 
 > Raw idea capture. Nothing here is committed scope. This feeds the PRD (`prd.md`),
 > which feeds the spec (`spec.md`), which feeds stories, which feed code.
@@ -13,8 +13,8 @@
 
 ## 1. Vision
 
-Combine SSIM's individual AI agents into a single **employee digital assistant** — one
-clear, user-friendly surface where a State Street Investment Management employee can get
+Combine FinTechCo's individual AI agents into a single **employee digital assistant** — one
+clear, user-friendly surface where a FinTechCo employee can get
 help across their whole day: briefings, meetings, projects, clients, RFPs, sales,
 research, and compliance.
 
@@ -22,23 +22,23 @@ Today there are 5 standalone agents. The goal is to (a) add the missing agents a
 (b) bring them together into one coherent product with a custom web app front-end.
 
 **Audience:** portfolio managers, relationship managers, investment strategists, BD /
-sales, project & ops leads, and senior leaders at SSIM (~$4.1T AUM, institutional-only).
+sales, project & ops leads, and senior leaders at FinTechCo (~$4.1T AUM, institutional-only).
 
 ---
 
 ## 2. What exists today (5 agents)
 
-All are ADK + Gemini (`gemini-3.5-flash`) on Agent Runtime, GCP project
-`logical-vim-478515-b1`, each with graceful **mock-data fallback** when Google APIs are
-unavailable. Each lives in its own folder with `app/agent.py`, `app/mock_data.py`,
-`app/agent_engine_app.py`, tests, and its own `pyproject.toml`/venv.
+All are ADK-based agents on a managed agent runtime, each with graceful **mock-data
+fallback** when external APIs are unavailable. Each lives in its own folder with
+`app/agent.py`, `app/mock_data.py`, `app/agent_engine_app.py`, tests, and its own
+`pyproject.toml`/venv.
 
 | Agent | Folder | Real data sources | Output |
 |---|---|---|---|
-| Daily Briefing | `daily_briefing/` | Gmail, Calendar, market context | Morning briefing (markdown) |
-| Meeting Prep | `meeting_prep/` | Calendar, Gmail, Drive, customer profiles | Pre-meeting brief |
+| Daily Briefing | `daily_briefing/` | Email, Calendar, market context | Morning briefing (markdown) |
+| Meeting Prep | `meeting_prep/` | Calendar, Email, Drive, customer profiles | Pre-meeting brief |
 | Project Mgmt | `proj_ma/` | Jira (mock), Sheets | Workload analysis + exported plan sheet |
-| RFP Response | `rfp/` | Drive docs | Drafted RFP → Google Doc |
+| RFP Response | `rfp/` | Drive docs | Drafted RFP → shared doc |
 | Sales Support | `sales/` | CRM (mock), products, competitive intel | Proposals, email drafts, competitive briefs |
 
 **Gaps observed:**
@@ -89,7 +89,7 @@ unavailable. Each lives in its own folder with `app/agent.py`, `app/mock_data.py
   - `log_crm_interaction(customer, summary, outcome)` — write into CRM the Sales agent reads.
   - `create_jira_tasks(project_key, tasks)` — write into Jira the Project Mgmt agent reads.
 - **Prompt behavior:** raw notes → summary + actions; **confirm before any write**;
-  distinguish commitments SSIM made vs client actions.
+  distinguish commitments FinTechCo made vs client actions.
 - **Integration:** feeds Sales CRM, Project Mgmt Jira, and next-day Daily Briefing — a
   genuine closed loop.
 
@@ -115,7 +115,7 @@ unavailable. Each lives in its own folder with `app/agent.py`, `app/mock_data.py
 
 #### 3.4 Client Reporting / Review-Pack Generator
 - QBR & investment-committee decks from customer profile + attribution + products →
-  Google Slides/Doc. Complements Sales + Meeting Prep + Research.
+  a shared slide deck/doc. Complements Sales + Meeting Prep + Research.
 
 #### 3.5 Knowledge / Policy Q&A
 - HR / IT / internal-wiki RAG ("how do I expense X", "PTO policy", "VPN setup"). The piece
@@ -129,7 +129,7 @@ unavailable. Each lives in its own folder with `app/agent.py`, `app/mock_data.py
 ### Other ideas parked for later
 - **Risk Monitoring Agent** — portfolio risk limits, breach alerts, stress-test summaries.
 - **ESG / Stewardship Agent** — proxy-voting summaries, engagement tracking, ESG scoring
-  (SSIM emphasizes ESG heavily; could be part of Research or standalone).
+  (FinTechCo emphasizes ESG heavily; could be part of Research or standalone).
 - **Client Onboarding / KYC Agent** — institutional client onboarding, KYC/AML doc collection.
 - **General Document Drafting / Summarization Agent** — cross-cutting writing helper.
 
@@ -155,8 +155,8 @@ maximum control over UX.
 - Option B — Single concierge chat only. Feels like one assistant but weaker discovery of
   specialized capabilities.
 
-**Surfaces considered:** custom web app (**chosen**), Google Agentspace (less frontend
-work), ADK dev UI (dev-only).
+**Surfaces considered:** custom web app (**chosen**), a hosted agent-UI platform (less
+frontend work), ADK dev UI (dev-only).
 
 ---
 
@@ -180,8 +180,7 @@ Orchestrator ──► routes user intent ──► any of the specialist agents
   tables (not just paste markdown). Important for the custom-web-app surface.
 - **Reuse existing patterns:** each new agent = own folder, `agent.py`, `mock_data.py`,
   mock fallbacks, `agent_engine_app.py`, tests, deployable to Agent Engine.
-- **Shared conventions:** ADK system prompts must use `[VariableName]` not `{VariableName}`;
-  Vertex `global` location; `gemini-2.0-flash-001` (or newer if now available).
+- **Shared conventions:** ADK system prompts must use `[VariableName]` not `{VariableName}`.
 - **Orchestrator agent** is a new top-level component that ties specialists together.
 - **Write-back tools** (CRM, Jira, Gmail drafts) should always confirm before writing.
 - **Cross-agent data contracts:** CRM and Jira mock schemas are shared read/write surfaces
@@ -198,5 +197,5 @@ Orchestrator ──► routes user intent ──► any of the specialist agents
 - Real vs mock data timeline — which integrations go real first?
 - Where do the planning docs and orchestrator live in the repo structure?
 - Do we need a shared data/service layer (CRM, Jira) instead of per-agent mock files?
-- Model version — confirm `gemini-2.0-flash-001` vs upgrading.
+- Model choice — confirm the model version vs upgrading.
 ```

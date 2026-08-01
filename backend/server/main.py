@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FastAPI app for the SSIM assistant demo: chat endpoint (ADK) + store reads."""
+"""FastAPI app for the FinTechCo assistant demo: chat endpoint (ADK) + store reads."""
 
 import logging
 import uuid
@@ -26,9 +26,9 @@ from pydantic import BaseModel
 from server import llm, logic
 from server.store import STORE
 
-logger = logging.getLogger("ssim_assistant")
+logger = logging.getLogger("concierge_assistant")
 
-app = FastAPI(title="SSIM Employee Digital Assistant — Demo API")
+app = FastAPI(title="FinTechCo Employee Digital Assistant — Demo API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,11 +36,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── ADK runner (lazy so the read endpoints work even without Vertex creds) ──
+# ─── ADK runner (lazy so the read endpoints work even without model creds) ──
 
 _RUNNER = None
 _SESSIONS: dict[str, str] = {}
-APP_NAME = "ssim_assistant"
+APP_NAME = "concierge_assistant"
 USER_ID = "demo_user"
 
 
@@ -117,7 +117,7 @@ def assistant(req: AssistantRequest) -> dict:
     session_id = req.session_id or str(uuid.uuid4())
     try:
         reply = _run_turn(session_id, req.message)
-    except Exception as exc:  # keep the UI usable if Vertex/ADC is unavailable
+    except Exception as exc:  # keep the UI usable if the model backend is unavailable
         logger.exception("assistant turn failed")
         reply = f"⚠️ The assistant backend hit an error: {exc}"
     if not reply:
@@ -210,7 +210,7 @@ def reset() -> dict:
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "service": "ssim-assistant", "date": STORE.date}
+    return {"status": "ok", "service": "fintechco-assistant", "date": STORE.date}
 
 
 # ─── Static frontend (deployed container only; see README.md) ─

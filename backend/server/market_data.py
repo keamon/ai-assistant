@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Live public-company market intelligence for the SSIM assistant — **SEC EDGAR**
+Live public-company market intelligence for the FinTechCo assistant — **SEC EDGAR**
 (recent 10-K / 10-Q / 8-K filings) and **Yahoo Finance** (quote, price move,
 next earnings, headlines).
 
@@ -25,13 +25,7 @@ Design:
   on any error/timeout, returns the baked-in fixtures from
   :mod:`server.mock_data`. Each response is tagged ``"source": "live"`` or
   ``"source": "mock"`` so callers/UI can show provenance.
-- **Stock quotes get a second live tier**: if Yahoo's cookie/crumb handshake
-  fails, :func:`get_stock_snapshot` scrapes Google's search results page for
-  its inline stock answer box (price + move) before giving up to mock. This is
-  a best-effort convenience, not a supported API — Google's markup is
-  undocumented and can change or serve a cookie-consent page without notice,
-  so failures here are expected and silently degrade to mock.
-- **Deterministic offline mode**: set ``SSIM_DISABLE_LIVE_MARKET=1`` to skip the
+- **Deterministic offline mode**: set ``DEMO_DISABLE_LIVE_MARKET=1`` to skip the
   network entirely and always return the mock fixtures. Used by the test suite
   and CI so runs are fast and hermetic.
 
@@ -43,7 +37,6 @@ import datetime
 import http.cookiejar
 import json
 import os
-import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -51,7 +44,7 @@ import urllib.request
 from server import mock_data
 
 # SEC requires a descriptive User-Agent identifying the requester.
-_SEC_UA = "SSIM Employee Digital Assistant demo (contact: dev@chenkeamonwang.altostrat.com)"
+_SEC_UA = "FinTechCo Employee Digital Assistant demo (contact: dev@chenkeamonwang.altostrat.com)"
 # Yahoo's public endpoints want a browser-like UA + a cookie/crumb pair.
 _BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -63,7 +56,7 @@ _SEC_FORMS = ("10-K", "10-Q", "8-K")
 
 def _live_disabled() -> bool:
     """True when live fetches are switched off (offline/CI/testing)."""
-    return os.getenv("SSIM_DISABLE_LIVE_MARKET", "").strip().lower() in ("1", "true", "yes")
+    return os.getenv("DEMO_DISABLE_LIVE_MARKET", "").strip().lower() in ("1", "true", "yes")
 
 
 def _r(x, n=2):
@@ -247,9 +240,8 @@ def get_stock_snapshot(ticker: str) -> dict:
     """Live quote + next earnings + headlines for a public company.
 
     Returns ``{ticker, company, exchange, currency, source, quote{...},
-    next_earnings_date, news[...]}``. Tries Yahoo Finance first; if that fails,
-    tries scraping a live price/move off Google Search (see module docstring);
-    falls back to :data:`server.mock_data.MOCK_YAHOO_FINANCE` if both fail.
+    next_earnings_date, news[...]}``. Tries Yahoo Finance first; falls back to
+    :data:`server.mock_data.MOCK_YAHOO_FINANCE` on any failure.
     """
     ticker = (ticker or "").upper()
 
@@ -289,65 +281,7 @@ def get_stock_snapshot(ticker: str) -> dict:
         }
         return snap
     except Exception:
-        google_quote = _fetch_google_quote(ticker)
-        if google_quote:
-            return _stock_with_google_quote(ticker, google_quote)
         return _mock_stock(ticker)
-
-
-# ─── Google Search (second live tier — best effort, no API) ─────────────────
-
-# Matches Google's mobile-layout answer-box price span, e.g.
-# `<div class="BNeawe iBp4i AP7Wnd">$226.74</div>`. Undocumented and can
-# change without notice — see the module docstring.
-_GOOGLE_PRICE_RE = re.compile(r'BNeawe iBp4i AP7Wnd">\$?([\d,]+\.\d+)<')
-_GOOGLE_MOVE_RE = re.compile(
-    r'BNeawe[\w ]*AP7Wnd">\s*([+\-][\d,]+\.\d+)\s*\(?([+\-]?[\d.]+)%\)?'
-)
-
-
-def _parse_google_quote(html: str) -> dict | None:
-    """Best-effort extraction of ``{price, change, change_pct}`` from a Google
-    search results page for a stock ticker query. Returns ``None`` if the
-    expected answer-box markup isn't present (layout change, consent
-    interstitial, no results, etc.) — the caller falls back to mock."""
-    price_match = _GOOGLE_PRICE_RE.search(html)
-    if not price_match:
-        return None
-    quote = {"price": _r(float(price_match.group(1).replace(",", ""))), "change": None, "change_pct": None}
-    move_match = _GOOGLE_MOVE_RE.search(html)
-    if move_match:
-        quote["change"] = _r(float(move_match.group(1).replace(",", "")))
-        quote["change_pct"] = _r(float(move_match.group(2)))
-    return quote
-
-
-def _fetch_google_quote(ticker: str) -> dict | None:
-    """Scrape a live price/move for ``ticker`` off Google Search. Returns
-    ``None`` on any failure (network, blocked, unparseable) — never raises."""
-    try:
-        query = urllib.parse.quote_plus(f"{ticker} stock price")
-        url = f"https://www.google.com/search?q={query}&hl=en&gl=us"
-        req = urllib.request.Request(
-            url, headers={"User-Agent": _BROWSER_UA, "Accept-Language": "en-US,en;q=0.9"}
-        )
-        with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
-            html = resp.read().decode("utf-8", errors="ignore")
-        return _parse_google_quote(html)
-    except Exception:
-        return None
-
-
-def _stock_with_google_quote(ticker: str, google_quote: dict) -> dict:
-    """Mock company/exchange/earnings/news metadata with a live price/move
-    scraped from Google layered on top — used when Yahoo is unreachable."""
-    snap = _mock_stock(ticker)
-    snap["source"] = "live"
-    snap["quote"] = {
-        **snap.get("quote", {}),
-        **{k: v for k, v in google_quote.items() if v is not None},
-    }
-    return snap
 
 
 def _mock_stock(ticker: str) -> dict:

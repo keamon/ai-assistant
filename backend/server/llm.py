@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ def generate_briefing_narrative(summary: dict) -> str:
     emails = [f"- {e.get('subject')}" for e in summary.get("priority_emails", [])[:5]]
     suggestions = [f"- {s.get('title')}" for s in summary.get("suggestions", [])]
     market = summary.get("market", {}) or {}
-    tpv = (market.get("ssim_payments_banking_snapshot", {}) or {}).get("total_tpv", "")
+    tpv = (market.get("fintechco_payments_banking_snapshot", {}) or {}).get("total_tpv", "")
     # Public-company customer intelligence (SEC filings + market snapshot) for context.
     watch_lines = []
     for w in summary.get("public_company_watch", []) or []:
@@ -147,7 +147,7 @@ def generate_meeting_prep(prep: dict) -> dict:
     emails = [f"- {e.get('subject')}: {e.get('snippet','')[:140]}" for e in prep.get("recent_emails", [])[:4]]
     docs = [f"- {d.get('name')}" for d in prep.get("related_documents", [])]
     inv = profile.get("investment_profile", {}) or {}
-    rel = profile.get("ssim_relationship", {}) or {}
+    rel = profile.get("fintechco_relationship", {}) or {}
     prompt = f"""You are the FinTechCo Meeting Prep agent. Prepare a meeting brief for a FinTechCo
 professional. Return ONLY JSON with keys:
   "objective": string (one sentence),
@@ -161,7 +161,7 @@ When: {m.get('start')} – {m.get('end')} · {m.get('location','')}
 Attendees: {', '.join(m.get('attendees', []))}
 Description: {m.get('description','')}
 Client: {profile.get('full_name') or profile.get('name') or 'n/a'} — {profile.get('type','')}
-Relationship: {rel.get('status','')}, {rel.get('ssim_aum','')} with FinTechCo, strategies: {', '.join(rel.get('strategies', []))}
+Relationship: {rel.get('status','')}, {rel.get('fintechco_aum','')} with FinTechCo, strategies: {', '.join(rel.get('strategies', []))}
 Key client concerns: {', '.join(inv.get('key_concerns', []))}
 Recent emails:
 {chr(10).join(emails) or '- none'}

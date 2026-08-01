@@ -1,7 +1,7 @@
-# SSIM Assistant — Backend
+# FinTechCo Assistant — Backend
 
-FastAPI backend for the SSIM Employee Digital Assistant demo. It runs a single ADK
-concierge agent locally (Vertex AI, `gemini-2.0-flash-001`) whose tools read and write a
+FastAPI backend for the FinTechCo Employee Digital Assistant demo. It runs a single ADK
+concierge agent locally (Claude Haiku 4.5 via the Anthropic API) whose tools read and write a
 shared in-process store. Because the store is shared, an assistant action (booking a room,
 creating Jira tasks, logging Salesforce activity) is immediately visible on the other tabs.
 
@@ -9,12 +9,12 @@ creating Jira tasks, logging Salesforce activity) is immediately visible on the 
 
 ```bash
 uv sync                      # install deps
-gcloud auth application-default login   # if not already authenticated (for Vertex)
 uv run uvicorn server.main:app --reload --port 8000
 ```
 
 Read endpoints (`/api/briefing`, `/api/rooms`, `/api/jira`, `/api/salesforce`, ...) work even
-without Vertex credentials; only the chat endpoint (`/api/assistant`) needs Vertex access.
+without an Anthropic API key; only the chat endpoint (`/api/assistant`) needs
+`ANTHROPIC_API_KEY` (set in `backend/.env`).
 
 ## API
 
@@ -37,6 +37,6 @@ Cloud Run: single combined service built from the repo-root `Dockerfile` (bundle
 frontend into this backend's image, served same-origin). See `spec.md` §11 for the deploy
 command and IAM/scaling settings.
 
-The SSIM domain data (calendar, emails, rooms, seats, Drive docs, customer profiles) is
-loaded from `daily_briefing/app/mock_data.py` so the demo never drifts from the agent.
-Jira and Salesforce state are demo-only (`server/seed.py`).
+The FinTechCo domain data (calendar, emails, rooms, seats, Drive docs, customer profiles) is
+the single source of truth in `server/mock_data.py`, loaded via `server/seed.py`, so the demo
+never drifts from the agent. Jira and Salesforce state are demo-only (also in `server/seed.py`).

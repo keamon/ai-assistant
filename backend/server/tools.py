@@ -1,5 +1,5 @@
 # ruff: noqa
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-ADK function tools for the SSIM assistant. Each is a thin wrapper that calls
+ADK function tools for the FinTechCo assistant. Each is a thin wrapper that calls
 :mod:`server.logic` against the shared :data:`server.store.STORE` and returns a
 JSON string. Writes here are what make the Jira / Salesforce / Rooms tabs update.
 """

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -347,7 +347,7 @@ def schedule_meeting(store, title, attendees, date, start_time, end_time, room_i
         "date": date, "title": title,
         "start": start.isoformat(), "end": end.isoformat(),
         "location": f"{room['name']} ({room['building']}, fl {room['floor']})" if room else "TBD",
-        "description": "Scheduled via SSIM assistant.",
+        "description": "Scheduled via FinTechCo assistant.",
         "attendees": attendees,
         "meeting_type": "customer" if _is_customer(attendees) else "internal",
         "video_link": "",

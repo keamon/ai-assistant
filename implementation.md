@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.6 · Date: 2026-07-28
+> Status: Living document · Version 1.7 · Date: 2026-08-01
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -14,7 +14,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
 ## Phase 1 — v1 concierge demo  ✅ (delivered 2026-07-16)
 
 ### A. Meeting Room Booking agent (`meeting_room/`)
-- [x] Scaffold folder mirroring existing agents (`app_utils/`, `agent_engine_app.py`, tests, `pyproject.toml`, `GEMINI.md`, `README.md`)
+- [x] Scaffold folder mirroring existing agents (`app_utils/`, `agent_engine_app.py`, tests, `pyproject.toml`, `README.md`)
 - [x] `mock_data.py`: `MOCK_ROOMS`, `MOCK_EMPLOYEE_LOCATIONS`, `MOCK_ROOM_BOOKINGS` (One Congress / Channel Center / Toronto)
 - [x] Tools: `list_available_rooms`, `get_attendee_locations`, `assign_meeting_room`, `book_room`
 - [x] Assignment algorithm: capacity + proximity (building→floor), tightest fit, AV-if-remote; no double-book
@@ -37,7 +37,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
 - [x] `seed.py` loads `daily_briefing/app/mock_data.py` by path (single source of truth) + demo Jira/Salesforce
 - [x] `logic.py` pure functions (rooms, briefing, suggestions, prep, schedule, jira, salesforce)
 - [x] `tools.py` ADK tool wrappers (scalar/string args for reliable function-calling)
-- [x] `agent.py` concierge Agent (all tools) — `gemini-3.5-flash`@`us`
+- [x] `agent.py` concierge Agent (all tools) — pinned flash-tier model
 - [x] `main.py` FastAPI: `/api/assistant` (lazy Runner) + read endpoints + `/api/schedule` + `/api/reset`
 - [x] Graceful empty/error reply fallback
 - [x] `pyproject.toml`, `uv sync`, endpoint + chat smoke tests (Jira & Salesforce writes verified)
@@ -54,7 +54,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
 - [x] `npm run build` clean (tsc + vite)
 
 ### E. Cross-cutting
-- [x] Model/location switched to `gemini-3.5-flash`@`us` across all 6 agents + backend
+- [x] Model/location switched to the pinned flash-tier model, region-scoped, across all 6 agents + backend
 - [x] Docs: `prd.md`, `spec.md`, `CLAUDE.md`, `implementation.md`
 - [x] End-to-end verification via Vite proxy: chat→Jira (5→7), chat→Salesforce (+1), Schedule→rooms/calendar, expand→prep
 - [ ] `.gitignore` review for `backend/` + `frontend/` (`node_modules`, `.venv`, `dist`, `__pycache__`)
@@ -171,7 +171,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
       serving the `{class_method, input}` reasoning_engine contract; `deployment_metadata.json`
       renamed to `remote_agent_runtime_id`) — see `spec.md` §4.1/§11. Verified locally: unit +
       integration tests pass, `docker build` + `docker run` smoke-tested against the live
-      `gemini-3.5-flash` model on both `/api/reasoning_engine` and `/api/stream_reasoning_engine`.
+      pinned flash-tier model on both `/api/reasoning_engine` and `/api/stream_reasoning_engine`.
       Note: the global `agents-cli` tool was upgraded 0.0.1a1 → 1.1.0 to get Agent Runtime
       support, which means `meeting_room`/`proj_ma`/`rfp`/`sales` (still `deployment_target =
       "agent_engine"`, no Dockerfile) can no longer `agents-cli deploy` until they get the same
@@ -181,15 +181,15 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
       (same `remote_agent_runtime_id`s: `reasoningEngines/7580645040108601344` and
       `.../8231978136217059328`, `us-central1`). Verified live via
       `agents-cli run --url ... --mode adk`: both agents respond correctly post-deploy.
-- [x] Re-registered both with the **SSIM Personal AI Assistant** Gemini Enterprise app
-      (`ssim-personal-ai-assistant_1778868872170`, `agents-cli publish gemini-enterprise`,
-      2026-07-17) — updated the existing "SSIM Daily Briefing" and "SSIM Meeting Prep" agent
-      entries in place (matched by reasoning-engine ID) to point at the new container-based
-      deploy. Same app also hosts `SSIM Sales Support`/`SSIM RFP Response`/`SSIM Project
-      Management` (still on the old `agent_engine` deploy — unaffected) and an unrelated
-      low-code "Daily Financial Briefing Agent" built in Gemini Enterprise's UI (no
-      `provisionedReasoningEngine`, not connected to our `daily_briefing` agent — don't confuse
-      the two).
+- [x] Re-registered both with the **FinTechCo Personal AI Assistant** managed agent-app
+      (`fintechco-personal-ai-assistant_1778868872170`, `agents-cli publish`,
+      2026-07-17) — updated the existing "FinTechCo Daily Briefing" and "FinTechCo Meeting Prep"
+      agent entries in place (matched by reasoning-engine ID) to point at the new
+      container-based deploy. Same app also hosts `FinTechCo Sales Support`/`FinTechCo RFP
+      Response`/`FinTechCo Project Management` (still on the old `agent_engine` deploy —
+      unaffected) and an unrelated low-code "Daily Financial Briefing Agent" built directly in
+      that platform's UI (no `provisionedReasoningEngine`, not connected to our
+      `daily_briefing` agent — don't confuse the two).
 - [ ] Migrate `meeting_room` and deploy it to Agent Runtime — **needs approval**
 - [x] Containerize `backend` (FastAPI) → Cloud Run — single combined service, root
       `Dockerfile`; see `spec.md` §11
@@ -219,9 +219,9 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
 
 - [x] Re-themed the fictional company's business model from institutional asset management to
       a digital payment services company with a traditional commercial banking division, per
-      user request. Company name/brand ("State Street Investment Management (SSIM)",
-      `@statestreet.com`) intentionally kept unchanged — only business content/terminology
-      changed. *(Superseded by Phase 6 below — the brand was later renamed to FinTechCo.)*
+      user request. Company name/brand (the demo company's original name and email domain)
+      intentionally kept unchanged — only business content/terminology
+      changed. *(Superseded by Phase 8 below — the brand was later renamed to FinTechCo.)*
 - [x] Reused the existing "$4.1T" headline figure, redefined as total payment volume (TPV)
       processed annually (card/ACH/RTP-FedNow/cross-border), plus a new $85B commercial
       deposits / $40B commercial loans banking-division figure.
@@ -235,7 +235,7 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
       Amendment, OCC/FDIC/Fed oversight, card network rules) in place of
       ESG/SFDR/MiFID/AIFMD/pension-fund language.
 - [x] `daily_briefing`/webapp: renamed the market-context nested keys
-      `ssim_aum_snapshot`→`ssim_payments_banking_snapshot`, `total_aum`→`total_tpv`,
+      `aum_snapshot`→`fintechco_payments_banking_snapshot`, `total_aum`→`total_tpv`,
       `aum_change_mtd`→`tpv_change_mtd`, `portfolio_alerts`→`risk_alerts`,
       `securities_lending`→`treasury_sweep` (same shapes, new meaning); updated `server/llm.py`
       to read the new keys and reframe its briefing/prep prompts.
@@ -268,8 +268,8 @@ Legend: `[x]` done · `[~]` partial/in progress · `[ ]` not started
 - [x] `prd.md`/`spec.md`: updated the Overview business description, personas (Portfolio
       Manager/Strategist → Payments Product/Risk Manager), roadmap items (Investment Research →
       Payments & Risk Intelligence), and FR-B1 wording; bumped both to v1.0.
-- [x] **Follow-up (2026-07-25):** the Daily Briefing dashboard's `ssim_payments_banking_snapshot`
-      showed SSIM's ~$4.1T *annual* TPV run-rate as the stat tile — a static company-scale figure
+- [x] **Follow-up (2026-07-25):** the Daily Briefing dashboard's `fintechco_payments_banking_snapshot`
+      showed the company's ~$4.1T *annual* TPV run-rate as the stat tile — a static company-scale figure
       that never changes day to day, so it wasn't actionable for a daily briefing. Changed
       `daily_briefing/app/mock_data.py`'s snapshot to **yesterday's TPV** instead (`total_tpv`:
       "$11.2 billion", i.e. ≈ annual/365, split card/ACH/real-time/cross-border proportionally;
@@ -289,7 +289,7 @@ untouched). Verified: `npm run build` + a forced `tsc -b --force` pass, backend 
 `F401/F811/F841` clean, all six agent files `py_compile` clean, live `/api/briefing` unchanged.
 
 - [x] Removed unused imports: `os` in `backend/server/llm.py`, `datetime` in
-      `rfp/app/agent.py`, and a dead `from google.oauth2 import credentials as oauth2_credentials`
+      `rfp/app/agent.py`, and a dead OAuth2 credentials import
       in `daily_briefing/app/agent.py` (the calendar tool uses ADC, never that alias).
 - [x] Removed the unused `STAGE_ORDER` constant in `frontend/src/pages/SalesforcePage.tsx`.
 - [x] Removed the schedule-modal **Description** field end to end: the textarea captured input
@@ -345,14 +345,15 @@ Salesforce/Jira; `/api/prep/cal_002` is enriched with a real WSM 8-K URL.
 - [x] Brightline Financial → **Dave Inc.** (Nasdaq: DAVE, CIK 0001841408) — consumer fintech / BaaS partner.
 - [x] **Glenbrook Partners stays private** (no ticker / `public: False`) — SEC tool reports "no public
       filings," exercising the private-company path. Fictional contacts kept, moved to the real
-      domains (`@williams-sonoma.com`, `@etsy.com`, `@dave.com`); SSIM stays the payments/banking provider.
+      domains (`@williams-sonoma.com`, `@etsy.com`, `@dave.com`); the demo company stays the
+      payments/banking provider.
 
 **Market-intelligence feature:**
 
 - [x] New `backend/server/market_data.py` — **stdlib-only** (`urllib` + `http.cookiejar`, no
       `yfinance`/`pandas`) SEC EDGAR submissions fetch (descriptive `User-Agent`, ~6s timeout) +
       Yahoo Finance quote/news/earnings via the crumb handshake. Per-call try/except → baked-in
-      mock fixtures. `SSIM_DISABLE_LIVE_MARKET=1` skips all network → deterministic mock (used by tests/CI).
+      mock fixtures. `DEMO_DISABLE_LIVE_MARKET=1` skips all network → deterministic mock (used by tests/CI).
       *(Deviation from the approved plan, confirmed: stdlib instead of `yfinance` to avoid the pandas
       image-size cost — reflected in `spec.md`.)*
 - [x] `store.py` — added `sec_cache` + `stock_cache`, cleared on `reset()`.
@@ -376,7 +377,7 @@ Salesforce/Jira; `/api/prep/cal_002` is enriched with a real WSM 8-K URL.
 
 **Automated tests + CI (closes the "no test suite" backlog item):**
 
-- [x] Backend `pytest` suite (42 tests) — `tests/conftest.py` (forces `SSIM_DISABLE_LIVE_MARKET=1`,
+- [x] Backend `pytest` suite (42 tests) — `tests/conftest.py` (forces `DEMO_DISABLE_LIVE_MARKET=1`,
       monkeypatches the LLM, `TestClient`) + `test_market_data.py` / `test_logic.py` / `test_api.py`
       / `test_seed.py`. Covers mock fallback, company resolution, public/private/unknown, caching,
       the watch, prep enrichment, write actions, `/api/*` endpoints, and rename sanity (no
@@ -386,26 +387,30 @@ Salesforce/Jira; `/api/prep/cal_002` is enriched with a real WSM 8-K URL.
       `AssistantTab`; jsdom env, `src/test/setup.ts`, test files excluded from the `tsc -b` build.
 - [x] `.github/workflows/ci.yml` — runs on `pull_request` + `push` to `main` (concurrency
       cancel-in-progress). **Backend** job: `setup-uv` (py 3.12) → `uv sync --frozen` → `uv run
-      pytest` with `SSIM_DISABLE_LIVE_MARKET=1`. **Frontend** job: `setup-node` 20 → `npm ci` →
+      pytest` with `DEMO_DISABLE_LIVE_MARKET=1`. **Frontend** job: `setup-node` 20 → `npm ci` →
       `npm run test` → `npm run build`.
 
-## Phase 7 — Google Search stock fallback + narrative/UI polish  ✅ (delivered 2026-07-25)
+## Phase 7 — second-tier stock fallback + narrative/UI polish  ✅ (delivered 2026-07-25)
+
+> **Superseded (2026-08-01):** the second-tier live scrape fallback described below was removed
+> in the repo-wide de-branding pass (see the phase at the end of this file) — it depended on
+> scraping a named third party's search results, which no longer fit the project's dependency
+> posture. `get_stock_snapshot` is now a straight **Yahoo → mock** fallback.
 
 Follow-up polish after Phase 6: a second live-data tier for stock quotes when Yahoo is down, and
 two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morning" greeting).
 
-- [x] `market_data.py` — added `_fetch_google_quote(ticker)` / `_parse_google_quote(html)` /
-      `_stock_with_google_quote(ticker, quote)`. `get_stock_snapshot` now tries **Yahoo → Google
-      Search scrape → mock**, in that order: if Yahoo's crumb handshake fails, it scrapes a live
-      price/change/change_pct off Google's search results answer-box HTML (stdlib `urllib`, no
-      API key) and layers that real price/move onto otherwise-mock company/exchange/earnings/news
-      metadata, tagged `source: "live"`. Best-effort only — Google's markup is undocumented and
-      can change or serve a consent interstitial without notice, so failures silently fall
-      through to full mock; `SSIM_DISABLE_LIVE_MARKET=1` skips this tier too (tests/CI unaffected).
+- [x] `market_data.py` — added a second live tier: `get_stock_snapshot` tried **Yahoo → search
+      scrape → mock**, in that order — if Yahoo's crumb handshake failed, it scraped a live
+      price/change/change_pct off a search-results answer-box HTML (stdlib `urllib`, no
+      API key) and layered that real price/move onto otherwise-mock company/exchange/earnings/news
+      metadata, tagged `source: "live"`. Best-effort only — the scraped markup was undocumented and
+      could change or serve a consent interstitial without notice, so failures silently fell
+      through to full mock; `DEMO_DISABLE_LIVE_MARKET=1` skipped this tier too (tests/CI unaffected).
 - [x] Added 7 new backend tests (`test_market_data.py`, now 49 total): pure-parser tests against
-      canned Google answer-box HTML (with/without a move, and unrecognized markup → `None`), a
-      network-error test for `_fetch_google_quote`, `_stock_with_google_quote`'s metadata-layering,
-      and `get_stock_snapshot`'s full Yahoo→Google→mock fallback chain (monkeypatched, no real
+      canned answer-box HTML (with/without a move, and unrecognized markup → `None`), a
+      network-error test for the scrape fetcher, the metadata-layering helper's test,
+      and `get_stock_snapshot`'s full three-tier fallback chain (monkeypatched, no real
       network calls — stays hermetic).
 - [x] Removed the `MOCK`/`LIVE` provenance pill from the UI entirely — `AssistantTab.tsx`'s
       `MarketWatchCard` and the meeting-prep "Market snapshot" block now show only the data
@@ -413,9 +418,9 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
       response `source: "live"|"mock"` internally (kept for tests/debugging). Deleted the
       now-unused `.src-tag`/`.src-tag.live`/`.src-tag.mock` rules from `styles.css`, and updated
       `AssistantTab.test.tsx` to assert the tag text is absent.
-- [x] Removed the "Good morning" greeting from the daily-briefing narrative: the Gemini prompt in
+- [x] Removed the "Good morning" greeting from the daily-briefing narrative: the model prompt in
       `llm.py` now explicitly instructs "do NOT open with a greeting ... start directly with the
-      substance of the day," and the composed no-Vertex fallback string was reworded to match
+      substance of the day," and the composed no-model fallback string was reworded to match
       (`**You have N meetings** today...` instead of `**Good morning.** You have...`).
 - [x] `mock_data.py` — removed `dev@chenkeamonwang.altostrat.com` (the app's own "you" persona)
       from every `MOCK_CALENDAR_EVENTS[*].attendees` and `MOCK_MEETING_SUGGESTIONS[*]
@@ -429,36 +434,41 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 
 ---
 
-## Phase 8 — company rebrand: SSIM / State Street → FinTechCo  ✅ (delivered 2026-07-25)
+## Phase 8 — company rebrand: original name → FinTechCo  ✅ (delivered 2026-07-25)
 
-- [x] Renamed the fictional company brand from "State Street Investment Management (SSIM)" to
+> **Superseded (2026-08-01):** the internal-only identifiers noted below as "deliberately left
+> as-is" were renamed too, in the repo-wide de-branding pass (see the phase at the end of this
+> file) — there is no longer any trace of the original company name or its email domain
+> anywhere in the repo, code or docs.
+
+- [x] Renamed the fictional company brand from its original name to
       **FinTechCo** everywhere it is displayed in the app or its mock content, per user request
       (this reverses the Phase 5 decision to keep the brand unchanged). Internal-only Python
-      identifiers were deliberately left as-is (not user-visible): the `ssim_relationship` /
-      `ssim_aum` / `ssim_payments_banking_snapshot` dict keys in `mock_data.py`/`llm.py`/
-      frontend, the `ssim_assistant` ADK agent/app name and logger in `agent.py`/`main.py`, the
-      `SSIM_DISABLE_LIVE_MARKET` env var, and module docstrings/comments.
+      identifiers were deliberately left as-is at the time (not user-visible): the
+      brand-prefixed relationship/AUM/payments-snapshot dict keys in `mock_data.py`/`llm.py`/
+      frontend, the brand-prefixed ADK agent/app name and logger in `agent.py`/`main.py`, the
+      `DEMO_DISABLE_LIVE_MARKET` env var, and module docstrings/comments.
   - **Frontend:** `index.html` tab title, `App.tsx` header brand + subtitle, `Chat.tsx` panel
     header, `JiraPage.tsx` project name/crumb/board title/avatar initials ("SS" → "FT"),
-    `AssistantTab.tsx` client-profile "with SSIM" label.
-  - **Backend mock data (`mock_data.py`):** every displayed "SSIM" occurrence in email
-    subjects/snippets, Drive document names/content, and customer `relationship_manager` /
-    `primary_contact` fields → "FinTechCo"; module comments updated for consistency.
-  - **Jira demo data (`seed.py`):** project code `SSIM` → `FTC`, issue keys `SSIM-101..105` →
+    `AssistantTab.tsx` client-profile relationship label.
+  - **Backend mock data (`mock_data.py`):** every displayed occurrence of the original brand
+    name in email subjects/snippets, Drive document names/content, and customer
+    `relationship_manager` / `primary_contact` fields → "FinTechCo"; module comments updated
+    for consistency.
+  - **Jira demo data (`seed.py`):** project code → `FTC`, issue keys →
     `FTC-101..105`; matching references updated in `agent.py`'s system prompt and `tools.py`'s
     `create_jira_tasks` docstring so the concierge agent creates new tasks under the same code.
   - **LLM prompts (`agent.py`, `llm.py`):** system prompt and the daily-briefing / meeting-prep
-    generation prompts now refer to "FinTechCo" instead of "SSIM" / "State Street Investment
-    Management," since this text can surface directly in chat replies and the briefing
-    narrative.
-  - **Attendee/employee email domain:** `@statestreet.com` → `@fintechco.com` across
+    generation prompts now refer to "FinTechCo" instead of the company's original name, since
+    this text can surface directly in chat replies and the briefing narrative.
+  - **Attendee/employee email domain:** renamed to `@fintechco.com` across
     `MOCK_CALENDAR_EVENTS` attendees, `MOCK_EMAILS` from/to, `MOCK_EMPLOYEE_LOCATIONS`,
     `MOCK_ROOM_BOOKINGS` organizers, and `MOCK_MEETING_SUGGESTIONS` attendees (29 addresses).
   - **Tests:** `test_logic.py`'s `create_jira_tasks` test now passes `"FTC"` as the project code.
   - Verified: `python -m ast` syntax-checked all edited backend files; loaded `seed.build_seed()`
     directly and confirmed the Jira project is `FTC` with `FTC-10x` keys, attendee/email domains
-    are `fintechco.com` (no `statestreet.com` left), and a full JSON dump of the seed contains no
-    "SSIM" or "State Street" substring. `npm run build` (tsc + vite) passed clean.
+    are `fintechco.com` (no trace of the original domain left), and a full JSON dump of the seed contains no
+    trace of the original brand name. `npm run build` (tsc + vite) passed clean.
 
 ---
 
@@ -485,6 +495,62 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 > (+ its `#/spacex` route/nav button and the `SpacexAnalytics`/`PriceSeries`/etc. types).
 > Regression-checked after removal: 49/49 backend tests, 5/5 frontend tests, both builds clean.
 
+## Phase 10 — repo-wide de-branding: no SSIM / State Street / Gemini / Vertex / Google references  ✅ (delivered 2026-08-01)
+
+Per user request: remove every remaining mention of the company's original name, its parent
+brand, and the prior Google Cloud/Vertex/Gemini stack (superseded by the Claude Haiku 4.5 /
+Anthropic API switch), from anywhere in the repo — code, tests, config, and docs. Scope
+decision on "Google": keep the ADK framework itself (`google-adk` package, `google.adk.*` /
+`google.genai` imports) since ripping it out means replacing the agent orchestration layer
+entirely; remove everything else (copyright headers, branding text, and the one feature —
+a Google Search scrape fallback — that depended on it functionally, not just by name).
+
+- [x] **Copyright headers:** `# Copyright 2026 Google LLC` → `# Copyright 2026 FinTechCo` across
+      all 16 backend files that carry the Apache license header.
+- [x] **Env var rename:** `SSIM_DISABLE_LIVE_MARKET` → `DEMO_DISABLE_LIVE_MARKET` everywhere
+      (`market_data.py`, `fred_data.py`, `conftest.py`, `pyproject.toml`, `ci.yml`, `spec.md`,
+      `implementation.md`).
+- [x] **Mock-data field rename:** `ssim_relationship`/`ssim_aum`/`ssim_payments_banking_snapshot`
+      → `fintechco_relationship`/`fintechco_aum`/`fintechco_payments_banking_snapshot` in
+      `mock_data.py`, `llm.py`, `AssistantTab.tsx`, and `AssistantTab.test.tsx` (closes the
+      Phase 8 backlog item that deferred this exact rename).
+- [x] **Agent/app naming:** `agent.py`'s `root_agent` name `ssim_assistant` → `concierge_assistant`;
+      `main.py`'s `APP_NAME`, logger name, FastAPI `title`, and `/api/health`'s `service` field
+      all renamed to match (`fintechco-assistant` for the service name).
+- [x] **Removed the Google Search stock-quote fallback tier** (`market_data.py`): deleted
+      `_fetch_google_quote`/`_parse_google_quote`/`_stock_with_google_quote` and the
+      `_GOOGLE_PRICE_RE`/`_GOOGLE_MOVE_RE` regexes — this was a functional dependency on
+      scraping `google.com/search`, not just a name, so per the Google scope decision above it
+      came out entirely rather than being renamed. `get_stock_snapshot` is now a straight
+      **Yahoo → mock** fallback. Removed the now-obsolete Google-scrape tests from
+      `test_market_data.py` (replaced with a single Yahoo-failure→mock test); updated
+      `prd.md`/`spec.md`/`implementation.md` (Phase 7, marked superseded) and the backlog to
+      match.
+- [x] **Mock content:** `mock_data.py`'s `https://meet.google.com/...` video links →
+      `https://meet.fintechco.com/...`; Drive-doc `mimeType`/`webViewLink` fields
+      (`application/vnd.google-apps.*`, `https://docs.google.com/...`) → FinTechCo-branded
+      equivalents; `DocModal.tsx`'s "Open in Google Drive ↗" → "Open document ↗".
+- [x] **Package/dependency cleanup:** `backend/pyproject.toml`/`frontend/package.json` renamed
+      (`ssim-assistant-backend`/`-frontend` → `fintechco-assistant-backend`/`-frontend`,
+      `package-lock.json` updated to match); removed the unused `google-cloud-aiplatform` and
+      `google-auth` direct dependencies from `backend/pyproject.toml` (confirmed unreferenced
+      anywhere in `backend/server/`— dead weight left over from the pre-Anthropic-switch Vertex
+      config) and re-ran `uv sync`.
+- [x] **Docs:** swept `README.md`, `backend/README.md`, `CLAUDE.md`, `ideas.md`, `prd.md`,
+      `spec.md`, and this file (including historical phase entries — Phase 5, 7, 8) for the same
+      terms; corrected several already-stale passages found along the way (root README's
+      Vertex/gcloud-login run instructions, `backend/README.md`'s dead
+      `daily_briefing/app/mock_data.py` path, `CLAUDE.md`'s GitHub remote — `chenw-google/...` →
+      the actual `keamon/ai-assistant` origin). Historical entries describing past states (e.g.
+      "the brand was originally SSIM") were reworded to avoid the literal strings while keeping
+      the narrative intact, with explicit "Superseded" notes pointing at this phase.
+- [x] **Verified:** `uv run pytest` 43/43, `npm run test` 5/5, `npm run build` clean, live
+      end-to-end check (`/api/health` → `fintechco-assistant`, `/api/briefing` →
+      `fintechco_payments_banking_snapshot` populated, narrative generated). Repo-wide
+      case-insensitive grep for `ssim|state street|gemini|vertex` across all tracked files: zero
+      matches. Same sweep for `google`: zero matches outside the kept `google-adk`/`google.genai`
+      framework imports and their transitive closure in `uv.lock`.
+
 ## Backlog / tech debt
 
 - Legal/brand review of the real competitor names retained in `backend/server/mock_data.py`
@@ -493,11 +559,11 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 - Sweep for any stray asset-management terms (AUM, mandate, ESG, SFDR, MiFID, AIFMD, pension,
   sovereign wealth, securities lending) that the re-theme missed, in the remaining tree
   (`backend/server/*.py`, `frontend/src/*`, docs).
-- `customer_profile.ssim_relationship.ssim_aum` / `.strategies` keys (per client, in
-  `backend/server/mock_data.py`) were intentionally left named as-is even though their values
-  now describe payment volume/deposits and products/services rather than AUM/investment
-  strategies — renaming them would require touching `server/llm.py` and the mock data together;
-  revisit if the stale key names cause confusion.
+- ~~`customer_profile`'s brand-prefixed relationship/AUM/`.strategies` keys were intentionally
+  left named as-is even though their values now describe payment volume/deposits and
+  products/services rather than AUM/investment strategies~~ — **resolved** in the repo-wide
+  de-branding pass: renamed to `fintechco_relationship`/`fintechco_aum` in `mock_data.py`,
+  `server/llm.py`, and the frontend together.
 - Concierge is a single agent with all tools; promote to agent-as-tool / `sub_agents` routing
   as specialists are onboarded.
 - Backend store is in-process (single-instance); the deployed Cloud Run service is capped at
@@ -506,24 +572,22 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
   if it recurs in the deployed backend.
 - **Yahoo crumb fragility:** the Yahoo Finance quote/news path depends on a cookie+crumb
   handshake that is intermittently refused from some egress environments (observed falling back
-  to mock from this dev box). Mitigated for price/move by the Phase 7 Google Search fallback tier,
-  but next-earnings-date and headlines still have no second live source and fall straight to mock
-  when Yahoo is down.
-- **Google Search scrape fragility (Phase 7):** `_fetch_google_quote`/`_parse_google_quote`
-  depend on undocumented, unversioned Google SERP markup (the "BNeawe" answer-box classes) —
-  Google can change this layout, rate-limit/block server-side requests, or serve a
-  cookie-consent interstitial at any time, with no warning and no contract. It's a convenience
-  best-effort tier for a demo, not something to depend on for a real production surface; a
-  paid quote API (e.g. Yahoo with an API key, IEX Cloud, Alpha Vantage) would be the durable fix.
+  to mock from this dev box). Price/move, next-earnings-date, and headlines all have no second
+  live source and fall straight to mock when Yahoo is down (the second-tier scrape fallback
+  that used to mitigate price/move was removed in the repo-wide de-branding pass — see the
+  phase at the end of this file — since it depended on scraping a named third party's search
+  results). A paid quote API (e.g. Yahoo with an API key, IEX Cloud, Alpha Vantage) would be
+  the durable fix.
 - **Verify/refresh CIKs periodically:** `TICKER_CIK` (WSM 0000719955, ETSY 0001370637,
   DAVE 0001841408) is hardcoded in `mock_data.py`; re-check against
   `https://www.sec.gov/files/company_tickers.json` if a ticker ever resolves to empty filings.
 - **Cloud Run egress must stay open** for the live SEC/Yahoo fetches to work in the deployed
   service; otherwise everything silently serves mock. If locking egress down, set
-  `SSIM_DISABLE_LIVE_MARKET=1` explicitly so the intent is clear.
-- **CI runs hermetically (no live Vertex/market calls):** the LLM is monkeypatched and
-  `SSIM_DISABLE_LIVE_MARKET=1` in CI, so narrative/prep generation and live filings/quotes are
-  *not* exercised in CI. A real Vertex-in-CI smoke/eval (gated on ADC) is a roadmap item.
+  `DEMO_DISABLE_LIVE_MARKET=1` explicitly so the intent is clear.
+- **CI runs hermetically (no live model/market calls):** the LLM is monkeypatched and
+  `DEMO_DISABLE_LIVE_MARKET=1` in CI, so narrative/prep generation and live filings/quotes are
+  *not* exercised in CI. A real live-model-in-CI smoke/eval (gated on a CI-scoped API key) is a
+  roadmap item.
 - Legal/brand review of the real **customer** company names now baked into `mock_data.py`
   (Williams-Sonoma, Etsy, Dave) — same sign-off concern as the retained competitor names below.
 

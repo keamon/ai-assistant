@@ -1,6 +1,6 @@
 """
 Mock data for Daily Briefing Agent — FinTechCo.
-Simulates Gmail, Google Calendar, and payments/banking market context responses.
+Simulates email, calendar, and payments/banking market context responses.
 """
 
 import datetime
@@ -22,7 +22,7 @@ MOCK_CALENDAR_EVENTS = [
             "james.okonkwo@fintechco.com",
         ],
         "meeting_type": "internal",
-        "video_link": "https://meet.google.com/abc-defg-hij",
+        "video_link": "https://meet.fintechco.com/abc-defg-hij",
     },
     {
         "id": "cal_002",
@@ -103,7 +103,7 @@ MOCK_CALENDAR_EVENTS = [
         ],
         "meeting_type": "customer",
         "is_customer_meeting": True,
-        "video_link": "https://meet.google.com/xyz-abc-def",
+        "video_link": "https://meet.fintechco.com/xyz-abc-def",
     },
 ]
 
@@ -231,7 +231,7 @@ MOCK_MARKET_CONTEXT = {
         "card_network_auth_rate": "98.7%",
         "ach_same_day_volume": "+5.4% WoW",
     },
-    "ssim_payments_banking_snapshot": {
+    "fintechco_payments_banking_snapshot": {
         "as_of": f"yesterday ({(datetime.date.today() - datetime.timedelta(days=1)).isoformat()})",
         "total_tpv": "$11.2 billion",
         "card_tpv": "$7.9 billion",
@@ -295,8 +295,8 @@ MOCK_DRIVE_DOCS = [
     {
         "id": "doc_001",
         "name": "Williams-Sonoma — FinTechCo Payments Processing Agreement — Q3 2026 Report",
-        "mimeType": "application/vnd.google-apps.document",
-        "webViewLink": "https://docs.google.com/document/d/mock_williams-sonoma_q3/edit",
+        "mimeType": "application/vnd.fintechco-docs.document",
+        "webViewLink": "https://docs.fintechco.com/document/d/mock_williams-sonoma_q3/edit",
         "modifiedTime": f"{_TODAY}T07:00:00Z",
         "category": "client_report",
         "tags": ["williams-sonoma", "retail", "payments", "q3", "2026", "performance", "interchange"],
@@ -333,8 +333,8 @@ Processing-Agreement Renewal:
     {
         "id": "doc_002",
         "name": "FinTechCo Payments + BaaS — Platform Overview & Performance Track Record",
-        "mimeType": "application/vnd.google-apps.presentation",
-        "webViewLink": "https://docs.google.com/presentation/d/mock_payments_baas/edit",
+        "mimeType": "application/vnd.fintechco-docs.presentation",
+        "webViewLink": "https://docs.fintechco.com/presentation/d/mock_payments_baas/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=10)).isoformat() + "T12:00:00Z",
         "category": "strategy",
         "tags": ["payments", "baas", "embedded lending", "track record", "etsy"],
@@ -369,8 +369,8 @@ Fee Schedule (proposed for ~$3B projected annual TPV, combined payments + BaaS):
     {
         "id": "doc_003",
         "name": "FinTechCo BSA/AML & Compliance Policy — 2026",
-        "mimeType": "application/vnd.google-apps.document",
-        "webViewLink": "https://docs.google.com/document/d/mock_bsa_aml_policy/edit",
+        "mimeType": "application/vnd.fintechco-docs.document",
+        "webViewLink": "https://docs.fintechco.com/document/d/mock_bsa_aml_policy/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=45)).isoformat() + "T09:00:00Z",
         "category": "policy",
         "tags": ["bsa aml", "compliance", "policy", "kyc", "ofac", "dave", "williams-sonoma"],
@@ -410,8 +410,8 @@ FinTechCo applies BSA/AML controls across all payments and banking-division prog
     {
         "id": "doc_004",
         "name": "Etsy — RFP Response Draft — Payments + BaaS",
-        "mimeType": "application/vnd.google-apps.document",
-        "webViewLink": "https://docs.google.com/document/d/mock_etsy_rfp/edit",
+        "mimeType": "application/vnd.fintechco-docs.document",
+        "webViewLink": "https://docs.fintechco.com/document/d/mock_etsy_rfp/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=21)).isoformat() + "T15:00:00Z",
         "category": "rfp",
         "tags": ["etsy", "rfp", "payments", "baas", "embedded lending"],
@@ -446,8 +446,8 @@ Section 5: Fee Proposal
     {
         "id": "doc_005",
         "name": "FinTechCo Capabilities Deck — Dave BaaS Pre-read",
-        "mimeType": "application/vnd.google-apps.presentation",
-        "webViewLink": "https://docs.google.com/presentation/d/mock_dave_deck/edit",
+        "mimeType": "application/vnd.fintechco-docs.presentation",
+        "webViewLink": "https://docs.fintechco.com/presentation/d/mock_dave_deck/edit",
         "modifiedTime": (datetime.date.today() - datetime.timedelta(days=3)).isoformat() + "T11:00:00Z",
         "category": "pitch_deck",
         "tags": ["dave", "baas", "banking", "compliance", "fintech partner"],
@@ -467,10 +467,10 @@ MOCK_CUSTOMER_PROFILES = [
         "type": "Omnichannel Retailer",
         "country": "United States",
         "total_aum": "$7.9 billion (annual revenue)",
-        "ssim_relationship": {
+        "fintechco_relationship": {
             "status": "Active Client",
             "since": "March 2018",
-            "ssim_aum": "$12.1 billion (annual TPV — card + ACH)",
+            "fintechco_aum": "$12.1 billion (annual TPV — card + ACH)",
             "strategies": ["Card Processing (Visa/Mastercard)", "ACH Settlement"],
             "primary_contact": "Marcus Webb (VP of Payments)",
             "secondary_contact": "Jennifer Wu (Treasury Manager)",
@@ -496,10 +496,10 @@ MOCK_CUSTOMER_PROFILES = [
         "type": "E-Commerce Marketplace",
         "country": "United States",
         "total_aum": "$2.8 billion (annual revenue)",
-        "ssim_relationship": {
+        "fintechco_relationship": {
             "status": "Prospect — RFP Finalist",
             "since": "N/A — new relationship",
-            "ssim_aum": "$0 (prospect)",
+            "fintechco_aum": "$0 (prospect)",
             "strategies": ["Shortlisted for combined Payments + Embedded Lending (BaaS), ~$3B projected annual TPV"],
             "primary_contact": "Divya Nair (VP of Payments)",
             "secondary_contact": "Ryan Cole (Head of Finance)",
@@ -530,10 +530,10 @@ MOCK_CUSTOMER_PROFILES = [
         "type": "Fintech / Banking-as-a-Service Partner",
         "country": "United States",
         "total_aum": "$500 million (program deposits)",
-        "ssim_relationship": {
+        "fintechco_relationship": {
             "status": "Prospect — Initial Scoping",
             "since": "N/A — new",
-            "ssim_aum": "$0",
+            "fintechco_aum": "$0",
             "strategies": ["Exploring expanded BaaS program: FBO accounts, card issuing, embedded lending"],
             "primary_contact": "Priya Desai (Head of Compliance)",
             "relationship_manager": "Dev (FinTechCo — initial contact)",
@@ -561,10 +561,10 @@ MOCK_CUSTOMER_PROFILES = [
         "type": "Payments Advisory Firm (privately held)",
         "country": "United States",
         "total_aum": "N/A (private advisory firm)",
-        "ssim_relationship": {
+        "fintechco_relationship": {
             "status": "Consultant / Advisor",
             "since": "2021",
-            "ssim_aum": "$0 (advisory relationship)",
+            "fintechco_aum": "$0 (advisory relationship)",
             "strategies": ["Payments strategy & benchmarking advisory"],
             "primary_contact": "Peter Walsh (FinTechCo sponsor)",
             "relationship_manager": "Peter Walsh (FinTechCo)",

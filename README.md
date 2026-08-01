@@ -1,6 +1,6 @@
-# SSIM Employee Digital Assistant — Web App
+# FinTechCo Employee Digital Assistant — Web App
 
-A tabbed web app for a State Street Investment Management (SSIM) employee, plus interactive
+A tabbed web app for a FinTechCo employee, plus interactive
 **mock Jira** and **mock Salesforce** boards that update live when the assistant acts. It pairs
 a FastAPI backend running an in-process ADK **concierge agent** with a React + Vite + TypeScript
 frontend.
@@ -30,12 +30,12 @@ tabs — the boards reflect the change (new items briefly highlight).
 
 ## Run it (two terminals)
 
-**1. Backend** (needs Google ADC for Vertex; uses `gemini-3.5-flash` in the `us` region):
+**1. Backend** (chat uses Claude Haiku 4.5 via the Anthropic API — set `ANTHROPIC_API_KEY` in
+`backend/.env`; read endpoints work without it):
 
 ```bash
 cd backend
 uv sync
-gcloud auth application-default login   # if not already authenticated
 uv run uvicorn server.main:app --reload --port 8000
 ```
 
@@ -52,13 +52,10 @@ Open **http://localhost:5173**. The Vite dev server proxies `/api/*` to the back
 
 ## Notes
 
-- The SSIM domain data (calendar, emails, rooms, seats, Drive docs, customer profiles) is the
-  single source of truth in `backend/server/mock_data.py`, loaded via `backend/server/seed.py`.
+- The FinTechCo domain data (calendar, emails, rooms, seats, Drive docs, customer profiles) is
+  the single source of truth in `backend/server/mock_data.py`, loaded via `backend/server/seed.py`.
   Jira / Salesforce state is demo-only (also in `seed.py`).
-- Read endpoints work without Vertex credentials; only the chat needs Vertex access.
-- Model note: `gemini-2.0-flash-001` 404s at `global` for this project; `gemini-3.5-flash`
-  is served from the `us` multi-region (404s in `us-central1`/`us-east4`). The backend is set
-  to `gemini-3.5-flash` @ `us`.
+- Read endpoints work without an Anthropic API key; only the chat needs it.
 
 ## Deployment (approval-gated)
 

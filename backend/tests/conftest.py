@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2026 FinTechCo
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
 # limitations under the License.
 
 """
-Shared pytest fixtures for the SSIM backend suite.
+Shared pytest fixtures for the FinTechCo backend suite.
 
-Tests are hermetic: **no network, no Vertex**. We force the market-data layer
-into offline/mock mode (``SSIM_DISABLE_LIVE_MARKET=1``) *before* importing any
-server module, and monkeypatch the LLM helpers so the briefing/prep endpoints
-never call Vertex. This keeps CI fast and deterministic.
+Tests are hermetic: **no network, no live model calls**. We force the
+market-data layer into offline/mock mode (``DEMO_DISABLE_LIVE_MARKET=1``)
+*before* importing any server module, and monkeypatch the LLM helpers so the
+briefing/prep endpoints never call the model. This keeps CI fast and
+deterministic.
 """
 
 import os
 
 # Must be set before server.market_data is imported anywhere.
-os.environ["SSIM_DISABLE_LIVE_MARKET"] = "1"
+os.environ["DEMO_DISABLE_LIVE_MARKET"] = "1"
 
 import pytest  # noqa: E402
 
@@ -43,7 +44,7 @@ def client(monkeypatch):
     """FastAPI TestClient with the store reset and the LLM helpers stubbed.
 
     Stubbing the LLM keeps the ``/api/briefing`` and ``/api/prep`` endpoints
-    offline (they otherwise call Vertex Gemini for narrative/talking points).
+    offline (they otherwise call the model for narrative/talking points).
     """
     from fastapi.testclient import TestClient
 
