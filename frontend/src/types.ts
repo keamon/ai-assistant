@@ -40,6 +40,7 @@ export interface SecFiling {
   primary_doc?: string;
   url?: string;
   summary?: string;
+  description?: string;
 }
 
 export interface StockNews {
@@ -224,4 +225,79 @@ export interface RoomAssignment {
 export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
+}
+
+// ─── SpaceX index-inclusion analytics dashboard ────────────────────────────
+
+export interface PriceSeries {
+  ticker: string;
+  source: "live" | "mock";
+  currency?: string;
+  prices: { date: string; close: number }[];
+}
+
+export interface TimelineEvent {
+  date: string;
+  label: string;
+  kind: "filing" | "market" | "index";
+  detail: string;
+}
+
+export interface EventStudyMetrics {
+  ipo_price?: number;
+  first_close_price?: number;
+  first_close_pop_pct?: number;
+  peak_price?: number;
+  peak_date?: string;
+  latest_price?: number;
+  latest_date?: string;
+  inclusion_date_price?: number | null;
+  since_inclusion_pct?: number | null;
+  since_peak_pct?: number;
+  spcx_since_ipo_pct?: number;
+  ndx_since_ipo_date_pct?: number;
+  excess_return_since_ipo_pct?: number;
+}
+
+export interface FredSeriesPoint {
+  label: string;
+  units: string;
+  value: number;
+  prior?: number;
+  date: string;
+}
+
+export interface FredSnapshot {
+  as_of: string;
+  source: "live" | "mock";
+  series: Record<string, FredSeriesPoint>;
+  yield_curve_10y2y: number;
+}
+
+export interface BankImpactSection {
+  title: string;
+  points: string[];
+}
+
+export interface SpacexAnalytics {
+  company: string;
+  ticker: string;
+  index_name: string;
+  index_ticker: string;
+  ipo_date: string;
+  inclusion_date: string;
+  timeline: TimelineEvent[];
+  prices: { spcx: PriceSeries; index: PriceSeries };
+  metrics: EventStudyMetrics;
+  insights: string[];
+  filings: {
+    company?: string;
+    ticker?: string;
+    cik?: string;
+    source?: "live" | "mock";
+    filings: (SecFiling & { description: string })[];
+  };
+  fred: FredSnapshot;
+  bank_impact: BankImpactSection[];
+  narrative: string;
 }

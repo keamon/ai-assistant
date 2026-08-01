@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Technical Specification (SPEC)
 
-> Status: Living document · Version 1.6 · Date: 2026-08-01
+> Status: Living document · Version 1.7 · Date: 2026-08-01
 > Chain: [`ideas.md`](ideas.md) → [`prd.md`](prd.md) → **this spec** → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Scope: the whole solution — agent layer (6 ADK agents) + concierge web app (backend +
 > frontend) + shared mock data/state, plus the deployment path.
@@ -62,12 +62,10 @@ ai_assist/
 ├── Dockerfile .dockerignore .gcloudignore            # Cloud Run build (§11)
 ├── backend/   pyproject.toml, uv.lock, README.md, .env (gitignored — FRED_API_KEY),
 │              server/{main,agent,tools,logic,store,seed,mock_data,llm,__init__}.py,
-│              server/{market_data,fred_data,spacex_reference_data}.py
-│              (server/spacex_case_study.py is the target design — see PRD §6.8)
+│              server/{market_data,fred_data,spacex_reference_data,spacex_case_study}.py
 └── frontend/  package.json, vite.config.ts, src/{App,api,types,styles,richText}.tsx/ts,
                src/components/*, src/tabs/*, src/pages/*, src/styles/*.css,
                src/lib/caseStudyReportPdf.ts, src/hooks/useFreshTracker.ts
-               (src/pages/SpacexAnalyticsPage.tsx is the target design — see PRD §6.8)
 ```
 
 ## 3. Model configuration
@@ -203,10 +201,8 @@ Given attendees, date, window, optional `min_capacity`:
   cookie/crumb handshake needed, unlike the quote endpoint) for daily close-price history.
   Live-only (raises on failure) — callers with a specific ticker in mind supply their own mock
   fallback, since the generic `mock_data` fixtures don't carry time series.
-- **`spacex_case_study.py`** *(target design — not yet built on this branch; see the demo
-  starting-point note in PRD §6.8. The reference data it would import,
-  `spacex_reference_data.py`, already exists.)* — the **SpaceX (NASDAQ: SPCX) index-inclusion
-  market-intelligence dashboard**, a self-contained case study independent of the FinTechCo
+- **`spacex_case_study.py`** — the **SpaceX (NASDAQ: SPCX) index-inclusion
+  market-intelligence dashboard** (see PRD §6.8), a self-contained case study independent of the FinTechCo
   customer domain
   (`mock_data.py`/`seed.py`). SpaceX IPO'd 2026-06-12 (ticker `SPCX`, CIK `0001181412`) and was
   fast-tracked into the Nasdaq-100 on 2026-07-06 — real, dated facts (see PRD §6.8; reference
@@ -253,7 +249,7 @@ Given attendees, date, window, optional `min_capacity`:
 | GET | `/api/calendar` | → `{date, events}` |
 | GET | `/api/jira` | → `{project, columns, issues}` |
 | GET | `/api/salesforce` | → `{accounts, opportunities, activities}` |
-| GET | `/api/spacex-analytics` *(not yet on this branch — see PRD §6.8)* | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset` |
+| GET | `/api/spacex-analytics` | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset` |
 | POST | `/api/reset` | → re-seed store, clear sessions |
 | GET | `/api/health` | → `{status, service, date}` |
 | GET | `/` | deployed container only: built SPA (`index.html`); no-op locally without a frontend build |
@@ -261,14 +257,12 @@ Given attendees, date, window, optional `min_capacity`:
 ## 6. Web app — frontend (`frontend`, React + Vite + TS)
 
 - **Routing (`App.tsx`):** a dependency-free **hash router** (listens to `hashchange`).
-  Default renders the assistant app; `#/jira` and `#/salesforce` render standalone full-page
-  views (no assistant chrome), opened in a **new browser tab** via header buttons
+  Default renders the assistant app; `#/jira`, `#/salesforce`, and `#/spacex` render standalone
+  full-page views (no assistant chrome), opened in a **new browser tab** via header buttons
   (`window.open('#/jira','_blank')`). Hash routing keeps deep links / static hosting simple.
-  *(`#/spacex` is not yet wired up on this branch — see PRD §6.8.)*
-- **`pages/SpacexAnalyticsPage.tsx`** *(target design — not yet built on this branch)* — would
-  fetch `/api/spacex-analytics` once on mount and render the analyst narrative, stat tiles,
-  timeline, FRED macro tiles, SEC filings list, and the "Impact on bank operations" card grid,
-  using two components that **already exist and are ready to reuse**:
+- **`pages/SpacexAnalyticsPage.tsx`** — fetches `/api/spacex-analytics` once on mount and
+  renders the analyst narrative, stat tiles, timeline, FRED macro tiles, SEC filings list, and
+  the "Impact on bank operations" card grid, using two components built to be reused:
   - `components/IndexedPriceChart.tsx` — a generic, reusable 2-series indexed-line-chart (no
     charting library, built per the dataviz skill's method: single axis, both series rebased to
     100 at a shared start date, validated categorical color pair `#2a78d6`/`#eb6834`, legend +

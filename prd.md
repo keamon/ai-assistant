@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 1.6 · Date: 2026-08-01
+> Status: Living document · Version 1.7 · Date: 2026-08-01
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Owner: FinTechCo AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
@@ -187,13 +187,13 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 - **FR-X1 (P1)** Project Mgmt, RFP, Sales, and Meeting Prep remain independently usable and
   deployable; their capabilities are progressively surfaced in the concierge.
 
-### 6.8 SpaceX index-inclusion market-intelligence dashboard (target spec — not yet built on this branch)
-> 🎬 **Demo starting point (2026-07-29):** this branch intentionally does NOT implement §6.8 yet.
-> It keeps the reusable pieces a build needs — `server/spacex_reference_data.py` (pre-verified
-> real facts), `server/fred_data.py`, `market_data.get_price_history`,
-> `components/IndexedPriceChart.tsx`, and `lib/caseStudyReportPdf.ts` — so the feature below can
-> be built live from a short prompt. The fully-built, tested, documented version lives on
-> `feature/spacex-analytics-dashboard`.
+### 6.8 SpaceX index-inclusion market-intelligence dashboard
+> **Status (2026-08-01):** built. `server/spacex_case_study.py` (event-study metrics, insights,
+> bank-impact analysis), the `/api/spacex-analytics` endpoint, `llm.generate_spacex_narrative`,
+> and `frontend/src/pages/SpacexAnalyticsPage.tsx` (`#/spacex` route + header button) are live,
+> on top of the reusable groundwork (`server/spacex_reference_data.py`, `server/fred_data.py`,
+> `market_data.get_price_history`, `components/IndexedPriceChart.tsx`,
+> `lib/caseStudyReportPdf.ts`).
 
 A standalone analytics case study, independent of the FinTechCo demo-customer domain: SpaceX
 (NASDAQ: SPCX) IPO'd 2026-06-12 and was fast-tracked into the Nasdaq-100 on 2026-07-06 under a

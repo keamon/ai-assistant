@@ -191,3 +191,42 @@ Relevant documents:
                 {"question": "What are next steps and timelines?", "answer": "Confirm owners and dates before close."},
             ],
         }
+
+
+# ─── SpaceX case-study narrative ────────────────────────────────────────────
+
+def generate_spacex_narrative(payload: dict) -> str:
+    """2-3 paragraph analyst narrative from the SpaceX case study's computed
+    metrics, degrading to the composed insights if the model is unavailable."""
+    m = payload.get("metrics", {}) or {}
+    fred = payload.get("fred", {}) or {}
+    fred_lines = [
+        f"- {s.get('label')}: {s.get('value')}{s.get('units','')} (as of {s.get('date')})"
+        for s in (fred.get("series", {}) or {}).values()
+    ]
+    bank_titles = [b.get("title") for b in payload.get("bank_impact", [])]
+    prompt = f"""You are a market-intelligence analyst at FinTechCo, a digital payments company with a
+commercial banking division. Write a 2-3 paragraph (150-220 word) analyst narrative on SpaceX's
+(NASDAQ: {payload.get('ticker')}) IPO and fast-tracked {payload.get('index_name')} inclusion, for an
+internal audience. Markdown with **bold** for key figures, no title header. Cover: the IPO and its
+immediate aftermarket move, what has happened to the stock since the index-inclusion event, how it
+compares to the index itself (the "index effect"), the macro backdrop, and end with a one-sentence
+bridge into how this matters for the bank's own business lines. Be specific and data-driven; no filler.
+
+IPO date: {payload.get('ipo_date')} at ${m.get('ipo_price')}/share
+Index-inclusion date: {payload.get('inclusion_date')} ({payload.get('index_name')})
+First-close: ${m.get('first_close_price')} ({m.get('first_close_pop_pct')}%)
+Post-IPO peak: ${m.get('peak_price')} on {m.get('peak_date')}
+Latest: ${m.get('latest_price')} on {m.get('latest_date')} ({m.get('spcx_since_ipo_pct')}% since IPO offer price)
+{payload.get('index_name')} return over the same window: {m.get('ndx_since_ipo_date_pct')}%
+Excess return vs. index since IPO: {m.get('excess_return_since_ipo_pct')}pp
+Since index-inclusion date: {m.get('since_inclusion_pct')}%
+Macro backdrop (FRED):
+{chr(10).join(fred_lines) or '- n/a'}
+10Y-2Y yield curve: {fred.get('yield_curve_10y2y')}pp
+Bank-impact categories to gesture toward in the closing sentence: {', '.join(bank_titles)}
+"""
+    try:
+        return _generate(prompt)
+    except Exception:
+        return "\n\n".join(payload.get("insights", []))

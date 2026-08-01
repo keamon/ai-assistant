@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.9 · Date: 2026-08-01
+> Status: Living document · Version 2.0 · Date: 2026-08-01
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -472,28 +472,61 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 
 ---
 
-## Phase 9 — SpaceX index-inclusion analytics dashboard  🎬 (demo starting point on this branch)
+## Phase 9 — SpaceX index-inclusion analytics dashboard  ✅ (delivered 2026-07-29, re-verified 2026-08-01)
 
-> This branch (`demo/spacex-live-build-start`) is a **deliberately incomplete** starting point
-> for a timed live-build demo — see the "15-minute demo" plan captured 2026-07-29. The fully
-> built, tested, and documented version (everything below, as `[x]`) lives on
-> `feature/spacex-analytics-dashboard`; that branch's `implementation.md` has the full write-up.
->
-> **Kept on this branch** (reusable infra + pre-verified real data, so the live build has
-> nothing to research and nothing to fetch over the network):
-> - `backend/server/spacex_reference_data.py` — real IPO/index-inclusion timeline, SPCX/Nasdaq-100
->   price history, curated SEC filings (all captured live on 2026-07-28).
-> - `backend/server/fred_data.py`, `market_data.get_price_history()` — generic, already reusable.
-> - `frontend/src/components/IndexedPriceChart.tsx` — generic 2-series indexed chart, built per
->   the `dataviz` skill (validated color pair `#2a78d6`/`#eb6834`, hover tooltip, table view).
-> - `frontend/src/lib/caseStudyReportPdf.ts` — generic client-side PDF report generator (`jspdf`).
-> - The FinTechCo rebrand (Phase 8) underneath it all.
->
-> **Removed, to be rebuilt live:** `backend/server/spacex_case_study.py` (event-study metrics +
-> insights + bank-impact business logic), the `/api/spacex-analytics` endpoint and its store
-> caching, `llm.generate_spacex_narrative`, and `frontend/src/pages/SpacexAnalyticsPage.tsx`
-> (+ its `#/spacex` route/nav button and the `SpacexAnalytics`/`PriceSeries`/etc. types).
-> Regression-checked after removal: 49/49 backend tests, 5/5 frontend tests, both builds clean.
+> Re-verified 2026-08-01 after landing on `main` (post-rebrand/de-branding, post-LICENSE/
+> requirements.txt/skill/agent additions): fixed two rebrand leftovers in `spacex_case_study.py`
+> (`Copyright 2026 Google LLC` → `FinTechCo`, `SSIM_DISABLE_LIVE_MARKET` env var →
+> `DEMO_DISABLE_LIVE_MARKET` to match `market_data.py`'s convention). `uv run pytest` (43/43),
+> `npm run build` clean, and a fresh live browser pass: `/api/spacex-analytics` returned live SEC
+> + live Yahoo (SPCX + Nasdaq-100) + mock FRED (no `FRED_API_KEY` set) with correctly computed
+> metrics, the page rendered every section with no console errors, and "Download PDF report"
+> produced a valid 4-page PDF.
+
+> Built on top of the reusable groundwork already in place: `backend/server/spacex_reference_data.py`
+> (real IPO/index-inclusion timeline, curated SEC filings, baked price snapshots captured
+> 2026-07-28), `backend/server/fred_data.py` / `market_data.get_price_history()`,
+> `frontend/src/components/IndexedPriceChart.tsx`, and `frontend/src/lib/caseStudyReportPdf.ts`.
+
+- [x] `backend/server/spacex_case_study.py` — the business-logic layer: `get_price_series`
+      (live Yahoo history via `market_data.get_price_history`, falling back to the baked
+      `SPCX_PRICES`/`NDX_PRICES` snapshots), `get_filings` (its own SEC EDGAR pull over the
+      broader IPO-story form set — S-1, S-1/A, 8-A12B, 424B4, S-8, 8-K — deduped by
+      `(form, filed)`, curated descriptions keyed by accession number), `compute_event_study`
+      (offer/first-close/peak/latest/inclusion-date prices, % moves, and the excess return of
+      SPCX net of the Nasdaq-100's own move), `compose_insights` (deterministic bullets, also
+      the LLM narrative's fallback), `bank_impact_sections` (6 categories: ECM/underwriting,
+      index-fund/ETF flows, prime brokerage & SBL, wealth/private banking, corporate banking,
+      risk management — each referencing the computed metrics), and `get_dashboard_payload`
+      assembling everything for the API/PDF.
+- [x] `store.py` — `spacex_cache`/`spacex_narrative`, cleared on `reset()` (same pattern as
+      `sec_cache`/`stock_cache`).
+- [x] `main.py` — `GET /api/spacex-analytics`, generating + caching the payload and the LLM
+      narrative once per process.
+- [x] `llm.py` — `generate_spacex_narrative(payload)`: a 2-3 paragraph analyst narrative from
+      the computed metrics + FRED snapshot, degrading to `payload["insights"]` on any model
+      error (same try/except-compose pattern as `generate_briefing_narrative`). Uses Claude
+      Haiku 4.5 via the Anthropic API, per the model config in `CLAUDE.md`.
+- [x] `frontend/src/types.ts` — `SpacexAnalytics`, `PriceSeries`, `TimelineEvent`,
+      `EventStudyMetrics`, `FredSnapshot`, `BankImpactSection`; widened `SecFiling` with an
+      optional `description` field. `api.ts` — `api.spacexAnalytics()`.
+- [x] `frontend/src/pages/SpacexAnalyticsPage.tsx` — fetches `/api/spacex-analytics` on mount
+      and renders stat tiles (offer price, latest price, peak, excess return vs. index), the
+      analyst narrative, `IndexedPriceChart` (IPO/index-inclusion markers), a key-insights list,
+      the timeline, FRED macro tiles, the SEC filings list (live links), and the bank-impact
+      card grid; a header button downloads the PDF report via
+      `downloadCaseStudyReport`. `App.tsx` — `#/spacex` hash route (standalone page, no
+      assistant chrome) + "SpaceX Analysis ↗" header button, matching the Jira/Salesforce
+      pattern.
+- [x] Verified end-to-end against live data: `python -m py_compile` on all edited backend
+      files; ran the FastAPI app locally and confirmed `/api/spacex-analytics` returns live
+      (not mock) SEC/Yahoo/FRED data with correctly computed metrics (e.g. SPCX -13.9% vs.
+      offer, -27.5% since index inclusion, -6.7pp excess return vs. the Nasdaq-100) and a
+      Claude-generated narrative. `npm run build` (tsc + vite) passed clean. Drove the page
+      live in a browser via the Vite proxy: all sections render correctly (including the
+      chart's table-view toggle and live SEC filing links), and the "Download PDF report"
+      button produces a working multi-page PDF with no console errors. Confirmed the header
+      button on the main assistant app opens `#/spacex` in a new tab.
 
 ## Phase 10 — repo-wide de-branding: no SSIM / State Street / Gemini / Vertex / Google references  ✅ (delivered 2026-08-01)
 
@@ -571,6 +604,14 @@ a Google Search scrape fallback — that depended on it functionally, not just b
 
 ## Backlog / tech debt
 
+- **Google News search — deliberately not added to Phase 9.** The user's ask mentioned it
+  ("Google News search if needed"), but SEC filings + live SPCX/Nasdaq-100 price history + FRED
+  macro already give the event-study a fully sourced, dated narrative without it, and a
+  scraped-search dependency is exactly what Phase 10's de-branding pass removed elsewhere
+  (`market_data.py`'s second-tier price/move fallback) for being fragile/ToS-risky. If a live
+  news feed is wanted later, prefer a proper API (e.g. a paid news API, or the existing
+  Yahoo-headlines helper `market_data._yahoo_news`, already used for customer stock snapshots)
+  over scraping Google.
 - Legal/brand review of the real competitor names retained in `backend/server/mock_data.py`
   (Stripe, Adyen, Fiserv, Block/Square) before any external-facing demo — mirrors the prior use
   of real asset-manager competitor names, but worth a sign-off given the new industry.
