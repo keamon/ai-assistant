@@ -1,6 +1,17 @@
 ---
 name: add-concierge-tool
 description: Scaffold a new tool for the FinTechCo concierge agent (backend/server/logic.py + tools.py + agent.py registration), following this repo's exact ADK tool conventions, then flag the prd.md/spec.md/implementation.md updates the golden rule requires. Use when adding a new capability, action, or data lookup to the concierge agent.
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Edit
+  - Write
+  - Bash(cd backend && uv run *)
+  - Bash(cd frontend && npm *)
+  - Bash(curl *)
+  - Bash(git status*)
+  - Bash(git diff*)
 ---
 
 # Add a concierge tool
@@ -53,9 +64,9 @@ This repo has one ADK agent (`backend/server/agent.py`) whose tools are plain fu
 6. **Verify end-to-end**, not just import-clean:
    - `cd backend && uv run pytest` (add/extend a test in `backend/tests/` for the new logic
      function if one doesn't already cover it).
-   - Drive it live: `uv run uvicorn server.main:app --reload --port 8000`, then exercise the new
-     tool through the chat endpoint (or the matching read endpoint) and confirm the mock
-     fallback triggers correctly when forced (e.g. by making the live path raise).
+   - Drive it live: `cd backend && uv run uvicorn server.main:app --reload --port 8000` (run in
+     the background), then `curl` the chat endpoint (or the matching read endpoint) and confirm
+     the mock fallback triggers correctly when forced (e.g. by making the live path raise).
    - `cd frontend && npm run build` if the frontend surfaces the new data/action.
 
 ## Common mistakes this skill exists to prevent
