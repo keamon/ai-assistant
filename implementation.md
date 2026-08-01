@@ -555,10 +555,11 @@ a Google Search scrape fallback — that depended on it functionally, not just b
 
 - [x] **Added `LICENSE` (Apache 2.0)** at repo root, matching the header already carried by
       backend source files (`Copyright 2026 FinTechCo`).
-- [x] **Added `backend/requirements.txt`** as a pip-installable mirror of
+- [x] **Added root `requirements.txt`** as a pip-installable mirror of
       `backend/pyproject.toml` for tooling that expects a requirements file instead of `uv`.
       `pyproject.toml` remains the source of truth — regenerate with
-      `uv export --no-hashes --no-dev -o requirements.txt` if dependencies change.
+      `uv export --no-hashes --no-dev -o ../requirements.txt` (from `backend/`) if dependencies
+      change.
 
 ## Backlog / tech debt
 
