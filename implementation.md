@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.7 · Date: 2026-08-01
+> Status: Living document · Version 1.8 · Date: 2026-08-01
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -550,6 +550,15 @@ a Google Search scrape fallback — that depended on it functionally, not just b
       case-insensitive grep for `ssim|state street|gemini|vertex` across all tracked files: zero
       matches. Same sweep for `google`: zero matches outside the kept `google-adk`/`google.genai`
       framework imports and their transitive closure in `uv.lock`.
+
+## Repo hygiene
+
+- [x] **Added `LICENSE` (Apache 2.0)** at repo root, matching the header already carried by
+      backend source files (`Copyright 2026 FinTechCo`).
+- [x] **Added `backend/requirements.txt`** as a pip-installable mirror of
+      `backend/pyproject.toml` for tooling that expects a requirements file instead of `uv`.
+      `pyproject.toml` remains the source of truth — regenerate with
+      `uv export --no-hashes --no-dev -o requirements.txt` if dependencies change.
 
 ## Backlog / tech debt
 
