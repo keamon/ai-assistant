@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from server import llm, logic
+from server import llm, logic, spacex_case_study
 from server.store import STORE
 
 logger = logging.getLogger("concierge_assistant")
@@ -172,6 +172,19 @@ def stock(query: str) -> dict:
 def sec(query: str, form_type: str = "") -> dict:
     """Recent SEC EDGAR filings (10-K / 10-Q / 8-K) for a public-company customer."""
     return logic.sec_filings(STORE, query, form_type)
+
+
+@app.get("/api/spacex-analytics")
+def spacex_analytics() -> dict:
+    """SpaceX (SPCX) index-inclusion market-intelligence dashboard: event-study
+    metrics, timeline, SEC filings, FRED macro snapshot, insights, and
+    impact-on-bank-operations analysis. Cached per process, cleared on
+    ``/api/reset``, same pattern as ``/api/briefing``."""
+    if STORE.spacex_cache is None:
+        STORE.spacex_cache = spacex_case_study.get_dashboard_payload()
+    if STORE.spacex_narrative is None:
+        STORE.spacex_narrative = llm.generate_spacex_narrative(STORE.spacex_cache)
+    return {**STORE.spacex_cache, "narrative": STORE.spacex_narrative}
 
 
 @app.get("/api/doc/{doc_id}")

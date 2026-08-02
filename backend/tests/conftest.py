@@ -62,6 +62,7 @@ def client(monkeypatch):
             "anticipated_questions": [{"question": "q", "answer": "a"}],
         },
     )
+    monkeypatch.setattr(llm, "generate_spacex_narrative", lambda payload: "TEST SPACEX NARRATIVE")
 
     STORE.reset()
     main._SESSIONS.clear()

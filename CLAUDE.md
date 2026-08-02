@@ -106,6 +106,12 @@ builds `frontend` and serves the built SPA from the FastAPI `backend` as one com
 - Use `uv` for Python (`uv run …`, `uv sync`); `npm` for the frontend.
 - Prefer editing over rewriting; preserve surrounding code, comments, and config.
 - If the same error recurs 3+ times, fix the root cause instead of retrying.
+- 🔴 **Before concluding a live API key is missing (e.g. a source comes back `"mock"` when you
+  expected `"live"`), check `backend/.env` first** — it's gitignored and holds
+  `ANTHROPIC_API_KEY`, `FRED_API_KEY`, and any other live-integration keys. A fresh
+  `git worktree add` only checks out tracked files, so it does **not** inherit a gitignored
+  `.env` from the checkout it branched from — copy it over manually
+  (`cp backend/.env <worktree>/backend/.env`) rather than assuming the key was never set.
 
 ## Source control
 

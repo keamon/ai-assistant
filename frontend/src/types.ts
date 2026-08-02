@@ -225,3 +225,90 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
 }
+
+// ─── SpaceX index-inclusion analytics dashboard ─────────────────────────────
+
+export interface SpacexTimelineEvent {
+  date: string;
+  label: string;
+  kind: "filing" | "market" | "index";
+  detail: string;
+}
+
+export interface SpacexPricePoint {
+  date: string;
+  close: number;
+}
+
+export interface SpacexPriceSeries {
+  ticker: string;
+  source: "live" | "mock";
+  prices: SpacexPricePoint[];
+}
+
+export interface SpacexMetrics {
+  ipo_price?: number;
+  ipo_date?: string;
+  latest_price?: number;
+  latest_date?: string;
+  peak_price?: number;
+  peak_date?: string;
+  spcx_since_ipo_pct?: number;
+  ndx_since_ipo_date_pct?: number;
+  excess_return_since_ipo_pct?: number;
+  inclusion_date?: string;
+  price_at_inclusion?: number;
+  since_inclusion_pct?: number;
+  drawdown_from_peak_pct?: number;
+}
+
+export interface SpacexFiling {
+  form: string;
+  filed: string;
+  description: string;
+  accession?: string;
+  primary_doc?: string;
+}
+
+export interface SpacexFilingsResult {
+  company?: string;
+  ticker?: string;
+  cik?: string;
+  source: "live" | "mock";
+  filings: SpacexFiling[];
+}
+
+export interface SpacexFredSeriesPoint {
+  label: string;
+  units: string;
+  value: number;
+  prior?: number;
+  date: string;
+}
+
+export interface SpacexFredSnapshot {
+  as_of: string;
+  source: "live" | "mock";
+  series: Record<string, SpacexFredSeriesPoint>;
+  yield_curve_10y2y: number;
+}
+
+export interface SpacexBankImpactSection {
+  title: string;
+  points: string[];
+}
+
+export interface SpacexAnalytics {
+  company: string;
+  ticker: string;
+  index_name: string;
+  index_ticker: string;
+  timeline: SpacexTimelineEvent[];
+  prices: { spcx: SpacexPriceSeries; index: SpacexPriceSeries };
+  metrics: SpacexMetrics;
+  insights: string[];
+  filings: SpacexFilingsResult;
+  fred: SpacexFredSnapshot;
+  bank_impact: SpacexBankImpactSection[];
+  narrative: string;
+}

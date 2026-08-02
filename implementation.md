@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.9 · Date: 2026-08-01
+> Status: Living document · Version 1.10 · Date: 2026-08-01
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -472,84 +472,82 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 
 ---
 
-## Phase 9 — SpaceX index-inclusion analytics dashboard  🎬 (demo starting point on this branch)
+## Phase 9 — SpaceX index-inclusion analytics dashboard  ✅ (built 2026-08-01)
 
-> This branch (`demo/spacex-live-build-start`) is a **deliberately incomplete** starting point
-> for a timed live-build demo — see the "15-minute demo" plan captured 2026-07-29. The fully
-> built, tested, and documented version (everything below, as `[x]`) lives on
-> `feature/spacex-analytics-dashboard`; that branch's `implementation.md` has the full write-up.
->
-> **Kept on this branch** (reusable infra + pre-verified real data, so the live build has
-> nothing to research and nothing to fetch over the network):
-> - `backend/server/spacex_reference_data.py` — real IPO/index-inclusion timeline, SPCX/Nasdaq-100
->   price history, curated SEC filings (all captured live on 2026-07-28).
-> - `backend/server/fred_data.py`, `market_data.get_price_history()` — generic, already reusable.
-> - `frontend/src/components/IndexedPriceChart.tsx` — generic 2-series indexed chart, built per
->   the `dataviz` skill (validated color pair `#2a78d6`/`#eb6834`, hover tooltip, table view).
-> - `frontend/src/lib/caseStudyReportPdf.ts` — generic client-side PDF report generator (`jspdf`).
-> - The FinTechCo rebrand (Phase 8) underneath it all.
->
-> **Removed, to be rebuilt live:** `backend/server/spacex_case_study.py` (event-study metrics +
-> insights + bank-impact business logic), the `/api/spacex-analytics` endpoint and its store
-> caching, `llm.generate_spacex_narrative`, and `frontend/src/pages/SpacexAnalyticsPage.tsx`
-> (+ its `#/spacex` route/nav button and the `SpacexAnalytics`/`PriceSeries`/etc. types).
-> Regression-checked after removal: 49/49 backend tests, 5/5 frontend tests, both builds clean.
+> Built live from the `demo/spacex-live-build-start` starting point (kept reusable infra +
+> pre-verified real data: `spacex_reference_data.py`, `fred_data.py`,
+> `market_data.get_price_history()`, `IndexedPriceChart.tsx`, `caseStudyReportPdf.ts`,
+> `spacex.css`) per the target design already written into PRD §6.8 and spec.md §5/§6.
 
-## Phase 10 — repo-wide de-branding: no SSIM / State Street / Gemini / Vertex / Google references  ✅ (delivered 2026-08-01)
+**Backend**
+- [x] **`backend/server/spacex_case_study.py`** (new) — `get_price_series(ticker, fallback)`,
+      `get_filings(limit=12)`, `compute_event_study(spcx_prices, ndx_prices)`,
+      `compose_insights(metrics)`, `bank_impact_sections(metrics)` (6 categories),
+      `get_dashboard_payload()`. Own `_live_disabled()` (same `DEMO_DISABLE_LIVE_MARKET`
+      convention as `market_data.py`/`fred_data.py`); own SEC EDGAR fetch (broader form set
+      than the generic customer-watch fetch) with descriptions backfilled from
+      `spacex_reference_data.FILINGS`.
+- [x] **`llm.py`**: added `generate_spacex_narrative(payload)` — 2-3 paragraph analyst
+      narrative, degrades to `"\n\n".join(payload["insights"])` on model failure (same
+      try/except-compose shape as `generate_briefing_narrative`).
+- [x] **`store.py`**: added `spacex_cache`/`spacex_narrative` fields to `Store.reset()`.
+- [x] **`main.py`**: added `GET /api/spacex-analytics` — same cache-then-generate-narrative
+      shape as `/api/briefing`; cleared for free by the existing `/api/reset` (it just calls
+      `STORE.reset()`).
+- [x] **Tests**: `tests/test_spacex_case_study.py` (new, 9 unit tests against the case-study
+      logic) + 2 new `test_api.py` cases (`/api/spacex-analytics` shape + process-cache
+      stability) + `conftest.py`'s `client` fixture stubs `llm.generate_spacex_narrative`.
+      **53/53 backend tests pass** (was 43 before this phase — this phase net-added
+      `spacex_case_study.py`'s logic plus the endpoint, on top of the pre-existing kept infra).
 
-Per user request: remove every remaining mention of the company's original name, its parent
-brand, and the prior Google Cloud/Vertex/Gemini stack (superseded by the Claude Haiku 4.5 /
-Anthropic API switch), from anywhere in the repo — code, tests, config, and docs. Scope
-decision on "Google": keep the ADK framework itself (`google-adk` package, `google.adk.*` /
-`google.genai` imports) since ripping it out means replacing the agent orchestration layer
-entirely; remove everything else (copyright headers, branding text, and the one feature —
-a Google Search scrape fallback — that depended on it functionally, not just by name).
+**Frontend**
+- [x] **`types.ts`**: added `SpacexTimelineEvent`, `SpacexPricePoint`, `SpacexPriceSeries`,
+      `SpacexMetrics`, `SpacexFiling`, `SpacexFilingsResult`, `SpacexFredSeriesPoint`,
+      `SpacexFredSnapshot`, `SpacexBankImpactSection`, `SpacexAnalytics`.
+- [x] **`api.ts`**: added `api.spacexAnalytics()` → `GET /api/spacex-analytics`.
+- [x] **`pages/SpacexAnalyticsPage.tsx`** (new) — fetches once on mount; renders key-metric
+      stat tiles (IPO/latest/peak price, index return, excess return, pos/neg colored),
+      `IndexedPriceChart` (markers at IPO + index-inclusion dates), the analyst narrative via
+      `richText.tsx`'s `renderRich`, the timeline, FRED macro tiles, the SEC filings list, the
+      6-card bank-impact grid, and a "Download PDF report" button that maps `SpacexAnalytics` →
+      `CaseStudyReport` and calls `downloadCaseStudyReport`. Imports `../styles/spacex.css`
+      (previously unused on disk).
+- [x] **`App.tsx`**: added `#/spacex` route (renders `SpacexAnalyticsPage` standalone, no
+      assistant chrome), extended `openPage`'s union type, added the "SpaceX Analysis ↗"
+      header button next to Jira/Salesforce.
+- [x] **Tests**: `pages/SpacexAnalyticsPage.test.tsx` (new) — mocks `api.spacexAnalytics`,
+      asserts key stats/narrative/filings/bank-impact sections render. **6/6 frontend tests
+      pass** (was 5 before), `npm run build` (tsc + vite) clean.
 
-- [x] **Copyright headers:** `# Copyright 2026 Google LLC` → `# Copyright 2026 FinTechCo` across
-      all 16 backend files that carry the Apache license header.
-- [x] **Env var rename:** `SSIM_DISABLE_LIVE_MARKET` → `DEMO_DISABLE_LIVE_MARKET` everywhere
-      (`market_data.py`, `fred_data.py`, `conftest.py`, `pyproject.toml`, `ci.yml`, `spec.md`,
-      `implementation.md`).
-- [x] **Mock-data field rename:** `ssim_relationship`/`ssim_aum`/`ssim_payments_banking_snapshot`
-      → `fintechco_relationship`/`fintechco_aum`/`fintechco_payments_banking_snapshot` in
-      `mock_data.py`, `llm.py`, `AssistantTab.tsx`, and `AssistantTab.test.tsx` (closes the
-      Phase 8 backlog item that deferred this exact rename).
-- [x] **Agent/app naming:** `agent.py`'s `root_agent` name `ssim_assistant` → `concierge_assistant`;
-      `main.py`'s `APP_NAME`, logger name, FastAPI `title`, and `/api/health`'s `service` field
-      all renamed to match (`fintechco-assistant` for the service name).
-- [x] **Removed the Google Search stock-quote fallback tier** (`market_data.py`): deleted
-      `_fetch_google_quote`/`_parse_google_quote`/`_stock_with_google_quote` and the
-      `_GOOGLE_PRICE_RE`/`_GOOGLE_MOVE_RE` regexes — this was a functional dependency on
-      scraping `google.com/search`, not just a name, so per the Google scope decision above it
-      came out entirely rather than being renamed. `get_stock_snapshot` is now a straight
-      **Yahoo → mock** fallback. Removed the now-obsolete Google-scrape tests from
-      `test_market_data.py` (replaced with a single Yahoo-failure→mock test); updated
-      `prd.md`/`spec.md`/`implementation.md` (Phase 7, marked superseded) and the backlog to
-      match.
-- [x] **Mock content:** `mock_data.py`'s `https://meet.google.com/...` video links →
-      `https://meet.fintechco.com/...`; Drive-doc `mimeType`/`webViewLink` fields
-      (`application/vnd.google-apps.*`, `https://docs.google.com/...`) → FinTechCo-branded
-      equivalents; `DocModal.tsx`'s "Open in Google Drive ↗" → "Open document ↗".
-- [x] **Package/dependency cleanup:** `backend/pyproject.toml`/`frontend/package.json` renamed
-      (`ssim-assistant-backend`/`-frontend` → `fintechco-assistant-backend`/`-frontend`,
-      `package-lock.json` updated to match); removed the unused `google-cloud-aiplatform` and
-      `google-auth` direct dependencies from `backend/pyproject.toml` (confirmed unreferenced
-      anywhere in `backend/server/`— dead weight left over from the pre-Anthropic-switch Vertex
-      config) and re-ran `uv sync`.
-- [x] **Docs:** swept `README.md`, `backend/README.md`, `CLAUDE.md`, `ideas.md`, `prd.md`,
-      `spec.md`, and this file (including historical phase entries — Phase 5, 7, 8) for the same
-      terms; corrected several already-stale passages found along the way (root README's
-      Vertex/gcloud-login run instructions, `backend/README.md`'s dead
-      `daily_briefing/app/mock_data.py` path, `CLAUDE.md`'s GitHub remote — `chenw-google/...` →
-      the actual `keamon/ai-assistant` origin). Historical entries describing past states (e.g.
-      "the brand was originally SSIM") were reworded to avoid the literal strings while keeping
-      the narrative intact, with explicit "Superseded" notes pointing at this phase.
-- [x] **Verified:** `uv run pytest` 43/43, `npm run test` 5/5, `npm run build` clean, live
-      end-to-end check (`/api/health` → `fintechco-assistant`, `/api/briefing` →
-      `fintechco_payments_banking_snapshot` populated, narrative generated). Repo-wide
-      case-insensitive grep for `ssim|state street|gemini|vertex` across all tracked files: zero
-      matches. Same sweep for `google`: zero matches outside the kept `google-adk`/`google.genai`
-      framework imports and their transitive closure in `uv.lock`.
+**End-to-end verification (2026-08-01)**
+- First `curl /api/spacex-analytics` (in this worktree, before copying `.env` over): SEC EDGAR
+  and Yahoo Finance returned real live data (`prices.spcx.source` / `prices.index.source` /
+  `filings.source` all `"live"`), but `fred.source` came back `"mock"` and the narrative used
+  the composed-insights fallback. Root cause: `backend/.env` is gitignored, and `git worktree
+  add` only checks out tracked files — it does **not** copy gitignored files from the checkout
+  it branched from, so this worktree started with no `.env` at all even though the main
+  checkout's `backend/.env` has both `FRED_API_KEY` and `ANTHROPIC_API_KEY` set.
+- Copied `backend/.env` from the main checkout into this worktree and re-ran: `fred.source`
+  came back `"live"` (real FRED values, `as_of: 2026-07-30`, distinct from the baked mock
+  snapshot's 2026-07-27 numbers) and the narrative was genuinely model-generated (Claude
+  Haiku 4.5 output, not the composed fallback). **All three live sources (SEC EDGAR, Yahoo
+  Finance, FRED) and the LLM narrative verified live end-to-end.** The mock-fallback branch for
+  all of them is exercised separately by the backend test suite
+  (`DEMO_DISABLE_LIVE_MARKET=1`, set in `conftest.py`), so both code paths are covered.
+- Drove the actual page in Chrome (`npm run dev` + the live backend): all sections render
+  correctly (stat tiles, chart with IPO/inclusion markers, narrative, timeline, FRED tiles,
+  filings — including live filings outside the curated set, e.g. forms `3`/`4`/`EFFECT`,
+  correctly falling back to a generic `"{form} filing"` description), zero console errors.
+  Clicked "Download PDF report" — produced a real 3-page PDF (`spcx-case-study-report-*.pdf`)
+  with the header banner, key metrics, redrawn chart, narrative, timeline, filings, FRED
+  macro snapshot, and all 6 bank-impact sections correctly laid out.
+
+**Backlog item found during verification:** `IndexedPriceChart.tsx`'s x-axis label placement
+(`xLabelIdxs`, 5 evenly-spaced `Math.round` indices) can produce duplicate React keys when a
+series has very few data points (observed via a React key-collision console warning with a
+2-point test fixture). Not user-visible with real data (30+ points) and out of scope for this
+phase (the component is pre-existing shared infra) — worth a small dedupe fix
+(`[...new Set(...)]`) next time this component is touched.
 
 ## Repo hygiene
 

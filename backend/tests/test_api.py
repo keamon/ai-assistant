@@ -79,6 +79,28 @@ def test_prep_endpoint_customer_enriched(client):
     assert body["objective"] == "TEST OBJECTIVE"
 
 
+def test_spacex_analytics_endpoint(client):
+    r = client.get("/api/spacex-analytics")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ticker"] == "SPCX"
+    assert body["index_name"] == "Nasdaq-100"
+    assert body["narrative"] == "TEST SPACEX NARRATIVE"
+    assert body["prices"]["spcx"]["source"] == "mock"
+    assert body["prices"]["index"]["source"] == "mock"
+    assert body["metrics"]["ipo_price"] == 135.0
+    assert len(body["insights"]) >= 3
+    assert body["filings"]["source"] == "mock"
+    assert body["fred"]["source"] == "mock"
+    assert len(body["bank_impact"]) == 6
+
+
+def test_spacex_analytics_cached_across_calls(client):
+    first = client.get("/api/spacex-analytics").json()
+    second = client.get("/api/spacex-analytics").json()
+    assert first == second
+
+
 def test_salesforce_renamed(client):
     r = client.get("/api/salesforce")
     assert r.status_code == 200

@@ -191,3 +191,45 @@ Relevant documents:
                 {"question": "What are next steps and timelines?", "answer": "Confirm owners and dates before close."},
             ],
         }
+
+
+# ─── SpaceX index-inclusion case study narrative ────────────────────────────
+
+def generate_spacex_narrative(payload: dict) -> str:
+    """2-3 paragraph analyst narrative on the SpaceX index-inclusion case study,
+    for a FinTechCo audience. Degrades to the deterministic composed insights
+    (``payload["insights"]``) if the model is unavailable."""
+    m = payload.get("metrics", {}) or {}
+    insights = payload.get("insights", []) or []
+    bank_impact = payload.get("bank_impact", []) or []
+    fred = payload.get("fred", {}) or {}
+    fred_series = fred.get("series", {}) or {}
+
+    def _fred(sid):
+        return (fred_series.get(sid) or {}).get("value")
+
+    prompt = f"""You are a FinTechCo market-intelligence analyst. Write a 2-3 paragraph analyst
+narrative (220-300 words, markdown with short bold lead-ins, no title header) on {payload.get('company')}'s
+(NASDAQ: {payload.get('ticker')}) IPO and fast-tracked {payload.get('index_name')} inclusion, and what it
+means for FinTechCo's banking business (equity capital markets, index-fund/ETF flows, securities-based
+lending, wealth management, corporate banking, risk management). Be specific and data-driven; no filler
+or generic disclaimers.
+
+Key metrics:
+- IPO price ${m.get('ipo_price')} on {m.get('ipo_date')}; latest ${m.get('latest_price')} on {m.get('latest_date')} ({m.get('spcx_since_ipo_pct')}% since IPO)
+- Peak ${m.get('peak_price')} on {m.get('peak_date')} ({m.get('drawdown_from_peak_pct')}% off peak now)
+- {payload.get('index_name')} return over the same window: {m.get('ndx_since_ipo_date_pct')}%; excess return {m.get('excess_return_since_ipo_pct')}pp
+- Since the fast-tracked index inclusion on {m.get('inclusion_date')}: {m.get('since_inclusion_pct')}%
+
+Composed data-driven insights:
+{chr(10).join('- ' + i for i in insights)}
+
+Macro backdrop: fed funds {_fred('DFF')}%, 10Y Treasury {_fred('DGS10')}%, 2Y Treasury {_fred('DGS2')}%,
+CPI YoY {_fred('CPIAUCSL')}%, 10Y-2Y yield curve {fred.get('yield_curve_10y2y')}pp.
+
+Bank-impact categories already identified: {', '.join(b['title'] for b in bank_impact)}
+"""
+    try:
+        return _generate(prompt)
+    except Exception:
+        return "\n\n".join(insights) if insights else "No narrative available for this case study."
