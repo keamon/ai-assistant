@@ -27,28 +27,5 @@
       "Edit(**/*.key)",
       "Write(**/*.key)"
     ]
-  },
-  "sandbox": {
-    "network": {
-      // This backend's own live API surface (SEC EDGAR, Yahoo Finance, FRED, Anthropic) —
-      // see backend/server/{market_data,fred_data,llm,agent}.py.
-      // Plus the dev-tooling hosts this repo's workflow actually depends on (git/gh push +
-      // PR creation, npm/uv package installs) — narrowing to only the 4 API hosts above would
-      // silently break `git push`, `gh pr create`, `npm install`, and `uv sync`.
-      "allowedDomains": [
-        "data.sec.gov",
-        "finance.yahoo.com",
-        "query1.finance.yahoo.com",
-        "api.stlouisfed.org",
-        "api.anthropic.com",
-        "github.com",
-        "api.github.com",
-        "objects.githubusercontent.com",
-        "raw.githubusercontent.com",
-        "registry.npmjs.org",
-        "pypi.org",
-        "files.pythonhosted.org"
-      ]
-    }
   }
 }
