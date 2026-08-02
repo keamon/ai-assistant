@@ -42,8 +42,10 @@ ideas.md (brainstorm) → prd.md (product requirements) → spec.md (technical s
 
 ```
 backend/   server/{main,agent,tools,logic,store,seed,mock_data,llm}.py  # FastAPI + concierge agent + seed/mock data
-  tests/  pyproject.toml
-frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks}    # React + Vite + TS (4 tabs)
+           server/{market_data,fred_data,spacex_reference_data}.py      # live/reference market-data helpers
+  tests/   test_{api,logic,seed,market_data}.py                        # pytest (see Testing below)
+  pyproject.toml
+frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}  # React + Vite + TS (4 tabs)
 ```
 
 (The 6 standalone ADK agent folders were removed — see "What this repo is" above.)
@@ -90,10 +92,13 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks}    # React
 
 ## Testing
 
-- Frontend: `npm run build` (tsc + vite) is the smoke gate.
-- Backend has no unit-test suite yet (backlog); verify by driving the live API
-  (`uvicorn` + `curl /api/health`, `/api/reset`, `/api/briefing`).
-- Verify runtime behavior end-to-end (drive the flow), not just imports, for nontrivial changes.
+- Backend: `cd backend && uv run pytest` (`backend/tests/`: `test_api.py`, `test_logic.py`,
+  `test_seed.py`, `test_market_data.py`). Hermetic — `DEMO_DISABLE_LIVE_MARKET=1` forces
+  `market_data.py`/`fred_data.py` to fixtures, so no live model calls or network are needed.
+- Frontend: `npm run test` (vitest) + `npm run build` (tsc + vite) is the smoke gate.
+- Both suites run in CI on every PR and push to main (`.github/workflows/ci.yml`).
+- Verify runtime behavior end-to-end (drive the flow), not just imports/tests, for nontrivial
+  changes — e.g. `uvicorn` + `curl /api/health`, `/api/reset`, `/api/briefing`.
 
 ## Deployment (approval-gated)
 
