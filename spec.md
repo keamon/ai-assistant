@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Technical Specification (SPEC)
 
-> Status: Living document · Version 1.6 · Date: 2026-08-01
+> Status: Living document · Version 1.7 · Date: 2026-08-02
 > Chain: [`ideas.md`](ideas.md) → [`prd.md`](prd.md) → **this spec** → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Scope: the whole solution — agent layer (6 ADK agents) + concierge web app (backend +
 > frontend) + shared mock data/state, plus the deployment path.
@@ -203,26 +203,40 @@ Given attendees, date, window, optional `min_capacity`:
   cookie/crumb handshake needed, unlike the quote endpoint) for daily close-price history.
   Live-only (raises on failure) — callers with a specific ticker in mind supply their own mock
   fallback, since the generic `mock_data` fixtures don't carry time series.
-- **`spacex_case_study.py`** *(target design — not yet built on this branch; see the demo
-  starting-point note in PRD §6.8. The reference data it would import,
-  `spacex_reference_data.py`, already exists.)* — the **SpaceX (NASDAQ: SPCX) index-inclusion
+- **`spacex_case_study.py`** *(target design — not yet built on this branch; built once
+  2026-08-02 and removed again to keep this a clean demo starting point — see the PRD §6.8
+  callout. The reference data it imports, `spacex_reference_data.py`, already exists, including
+  `IPO_RAISE`/`IPO_VALUATION`.)* — the **SpaceX (NASDAQ: SPCX) index-inclusion
   market-intelligence dashboard**, a self-contained case study independent of the FinTechCo
-  customer domain
-  (`mock_data.py`/`seed.py`). SpaceX IPO'd 2026-06-12 (ticker `SPCX`, CIK `0001181412`) and was
-  fast-tracked into the Nasdaq-100 on 2026-07-06 — real, dated facts (see PRD §6.8; reference
-  dates/CIK verified against sec.gov and public reporting as of 2026-07-28).
-  - `get_price_series(ticker)` — SPCX/`^NDX` price history via `market_data.get_price_history`,
-    falling back to a baked real historical snapshot (`_MOCK_SPCX_PRICES`/`_MOCK_NDX_PRICES`,
-    captured 2026-07-28) rather than `mock_data.py`.
-  - `get_filings(limit=11)` — its own SEC EDGAR fetch (broader form set than
+  customer domain (`mock_data.py`/`seed.py`). SpaceX IPO'd 2026-06-12 (ticker `SPCX`, CIK
+  `0001181412`) and was fast-tracked into the Nasdaq-100 on 2026-07-06 — real, dated facts
+  (reference dates/CIK verified against sec.gov and public reporting as of 2026-07-28;
+  live-verified again against data.sec.gov and Yahoo Finance's chart API on 2026-08-02, both
+  reachable and consistent with the curated reference data).
+  - 🔴 **Live-only, no mock/fixture fallback** — per CLAUDE.md's "No mock data" policy for new
+    live-data integrations (added 2026-08-02), this module does **not** fall back to
+    `spacex_reference_data.py`'s baked price/filing snapshot the way the pre-existing
+    `market_data.py`/`fred_data.py` helpers fall back to `mock_data.py`/their own baked
+    snapshots. `spacex_reference_data.py`'s `SPCX_PRICES`/`NDX_PRICES`/`FILINGS` constants are
+    kept only as fixtures for tests to monkeypatch against, not as a runtime fallback; its
+    `TIMELINE` (editorial chronology, not a live feed) and `_CURATED_DESCRIPTIONS` (human labels
+    for filings actually fetched live) are the only pieces this module still uses directly. FRED
+    macro data is the one exception: it reuses `fred_data.get_economic_snapshot()` unchanged,
+    since that module's live/mock fallback predates the policy and is out of scope for this
+    module to touch.
+  - `get_price_series()` — SPCX/`^NDX` price history live via `market_data.get_price_history`
+    (itself live-only, raises on failure) — trimmed to the IPO date onward. Raises straight
+    through on failure; the endpoint (below) surfaces that as a clear error, not fabricated
+    numbers.
+  - `get_filings(limit=11)` — its own live SEC EDGAR fetch (broader form set than
     `market_data.get_sec_filings`: `S-1`, `S-1/A`, `8-A12B`, `424B4`, `S-8`, `8-K`, since these
     tell the IPO story), deduped by `(form, filed)`, with descriptions preferred from a curated
-    `_CURATED_DESCRIPTIONS` map keyed by accession number (SEC's own
-    `primaryDocDescription` is usually just the form code repeated) and a curated mock fallback
-    otherwise.
-  - `compute_event_study(spcx_prices, ndx_prices)` — offer-price/first-close/peak/latest/
-    inclusion-date prices and their % changes, plus `excess_return_since_ipo_pct` (SPCX return
-    net of the index's own move).
+    `_CURATED_DESCRIPTIONS` map keyed by accession number (SEC's own `primaryDocDescription` is
+    usually just the form code repeated) — enrichment only, never invents a filing EDGAR didn't
+    actually return. Raises on failure, no fallback.
+  - `compute_event_study(prices)` — offer-price/first-close/peak/latest/inclusion-date prices
+    and their % changes, plus `excess_return_since_ipo_pct` (SPCX return net of the index's own
+    move).
   - `compose_insights(metrics)` — deterministic, data-driven bullet insights (also the
     LLM narrative's fallback).
   - `bank_impact_sections(metrics)` — six categorized "impact on bank operations" sections
@@ -230,12 +244,25 @@ Given attendees, date, window, optional `min_capacity`:
     wealth/private banking, corporate banking, risk management), with 1-2 points referencing
     the computed metrics.
   - `get_dashboard_payload()` — assembles everything (`timeline`, `prices`, `metrics`,
-    `insights`, `filings`, `fred`, `bank_impact`) for the API/PDF.
+    `insights`, `filings`, `fred`, `bank_impact`) for the API/PDF. Raises if live SEC/Yahoo data
+    is unavailable.
   - `llm.generate_spacex_narrative(payload)` — 2-3 paragraph analyst narrative from the
-    computed metrics, degrading to `payload["insights"]` if the model is unavailable (same
-    try/except-compose pattern as `generate_briefing_narrative`).
+    computed metrics, degrading to `payload["insights"]` (joined into prose) if the Anthropic
+    model is unavailable (same try/except-compose pattern as `generate_briefing_narrative` —
+    this is a graceful-LLM-degradation fallback, not a live-market-data mock, so it's unaffected
+    by the "No mock data" policy above). Pass `payload["ipo_raise"]`/`payload["ipo_valuation"]`
+    (from `spacex_reference_data.IPO_RAISE`/`IPO_VALUATION`) into the prompt explicitly and
+    instruct the model not to invent figures — without the real number, Claude Haiku has
+    fabricated its own (wrong) raise amount when asked to discuss IPO size. Also defensively
+    strip a leading `#`-prefixed line from the response — "no title header" in the prompt doesn't
+    reliably stop the model from adding one, and the frontend's `renderRich()` doesn't support
+    markdown headings (it would render literally).
   - `store.py` caches `spacex_cache`/`spacex_narrative` (cleared on `reset()`), same pattern as
     `sec_cache`/`stock_cache`.
+  - Tests (`tests/test_spacex_case_study.py`) monkeypatch the live-call seams directly
+    (`market_data.get_price_history`, `spacex_case_study._fetch_filings_raw`) since there's no
+    `DEMO_DISABLE_LIVE_MARKET` offline path for this module to lean on — see CLAUDE.md's
+    Testing section.
 
 ### 5.1 HTTP API
 
@@ -253,7 +280,7 @@ Given attendees, date, window, optional `min_capacity`:
 | GET | `/api/calendar` | → `{date, events}` |
 | GET | `/api/jira` | → `{project, columns, issues}` |
 | GET | `/api/salesforce` | → `{accounts, opportunities, activities}` |
-| GET | `/api/spacex-analytics` *(not yet on this branch — see PRD §6.8)* | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset` |
+| GET | `/api/spacex-analytics` *(not yet on this branch — see PRD §6.8)* | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset`; live-only, so a live-data failure should return `{error}` instead of fabricated data |
 | POST | `/api/reset` | → re-seed store, clear sessions |
 | GET | `/api/health` | → `{status, service, date}` |
 | GET | `/` | deployed container only: built SPA (`index.html`); no-op locally without a frontend build |
@@ -267,8 +294,14 @@ Given attendees, date, window, optional `min_capacity`:
   *(`#/spacex` is not yet wired up on this branch — see PRD §6.8.)*
 - **`pages/SpacexAnalyticsPage.tsx`** *(target design — not yet built on this branch)* — would
   fetch `/api/spacex-analytics` once on mount and render the analyst narrative, stat tiles,
-  timeline, FRED macro tiles, SEC filings list, and the "Impact on bank operations" card grid,
-  using two components that **already exist and are ready to reuse**:
+  indexed price chart, timeline, FRED macro tiles, SEC filings list, "Impact on bank operations"
+  card grid, and a "Download PDF report" button (`lib/caseStudyReportPdf.
+  downloadCaseStudyReport`), showing a clear error card (no fabricated numbers) if the endpoint
+  returns `{error}`. Only pass the IPO and index-inclusion dates as chart markers (not every
+  timeline event — a denser marker set overlaps its own labels), and use a short common company
+  name like "SpaceX" (not the full SEC legal entity name) when building the PDF report object —
+  its chart legend has a fixed-width column and a long name overlaps the second series label.
+  Two components already exist and are ready to reuse:
   - `components/IndexedPriceChart.tsx` — a generic, reusable 2-series indexed-line-chart (no
     charting library, built per the dataviz skill's method: single axis, both series rebased to
     100 at a shared start date, validated categorical color pair `#2a78d6`/`#eb6834`, legend +
