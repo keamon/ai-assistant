@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from server import llm, logic
+from server import llm, logic, spacex_case_study
 from server.store import STORE
 
 logger = logging.getLogger("concierge_assistant")
@@ -199,6 +199,29 @@ def jira() -> dict:
 @app.get("/api/salesforce")
 def salesforce() -> dict:
     return STORE.salesforce
+
+
+@app.get("/api/spacex-analytics")
+def spacex_analytics() -> dict:
+    """SpaceX index-inclusion market-intelligence dashboard payload.
+
+    Live-only (SEC EDGAR + Yahoo Finance) — a live-data failure returns
+    ``{"error": ...}`` rather than a fabricated payload, per CLAUDE.md's
+    "No mock data" policy for new live-data integrations. Cached per process,
+    cleared on ``/api/reset``.
+    """
+    if STORE.spacex_cache is None:
+        try:
+            STORE.spacex_cache = spacex_case_study.get_dashboard_payload()
+        except Exception as exc:
+            logger.exception("SpaceX analytics live-data fetch failed")
+            return {"error": f"Live market data unavailable right now: {exc}"}
+
+    payload = dict(STORE.spacex_cache)
+    if STORE.spacex_narrative is None:
+        STORE.spacex_narrative = llm.generate_spacex_narrative(payload)
+    payload["narrative"] = STORE.spacex_narrative
+    return payload
 
 
 @app.post("/api/reset")

@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 1.7 · Date: 2026-08-02
+> Status: Living document · Version 1.8 · Date: 2026-08-03
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Owner: FinTechCo AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
@@ -187,15 +187,15 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
 - **FR-X1 (P1)** Project Mgmt, RFP, Sales, and Meeting Prep remain independently usable and
   deployable; their capabilities are progressively surfaced in the concierge.
 
-### 6.8 SpaceX index-inclusion market-intelligence dashboard (target spec — not yet built on this branch)
-> 🎬 **Demo starting point:** this branch intentionally does NOT implement §6.8 yet. It keeps
-> the reusable pieces a build needs — `server/spacex_reference_data.py` (pre-verified real facts,
-> including `IPO_RAISE`/`IPO_VALUATION`), `server/fred_data.py`, `market_data.get_price_history`,
-> `components/IndexedPriceChart.tsx`, and `lib/caseStudyReportPdf.ts` — so the feature below can
-> be built live from a short prompt. It was built once already (2026-08-02) and removed again
-> afterward to keep this branch a clean starting point for the next rehearsal — the lessons from
-> that build are folded into the requirements below and into spec.md/implementation.md, so the
-> next build starts from a better-informed spec instead of re-deriving them from scratch.
+### 6.8 SpaceX index-inclusion market-intelligence dashboard ✅ (built 2026-08-03)
+> Implemented in `backend/server/spacex_case_study.py` + `GET /api/spacex-analytics` +
+> `frontend/src/pages/SpacexAnalyticsPage.tsx`, reachable via the "SpaceX Analysis ↗" header
+> button (`#/spacex`, opened in a new tab). Built on top of the reusable pieces already in the
+> repo — `server/spacex_reference_data.py` (pre-verified real facts, including
+> `IPO_RAISE`/`IPO_VALUATION`), `server/fred_data.py`, `market_data.get_price_history`,
+> `components/IndexedPriceChart.tsx`, and `lib/caseStudyReportPdf.ts`. See spec.md §5/§6 and
+> implementation.md Phase 9 for the build record and the lessons folded into the requirements
+> below (live-only no-mock-fallback scope, the narrative-prompt/PDF-legend gotchas, etc.).
 
 A standalone analytics case study, independent of the FinTechCo demo-customer domain: SpaceX
 (NASDAQ: SPCX) IPO'd 2026-06-12 and was fast-tracked into the Nasdaq-100 on 2026-07-06 under a
@@ -239,6 +239,10 @@ A standalone analytics case study, independent of the FinTechCo demo-customer do
   timeline, filings, macro snapshot, and bank-impact analysis. Use a short common company name
   (e.g. "SpaceX", not the full SEC legal entity name) — the PDF chart legend has a fixed-width
   column and a long name overlaps the second series label.
+- **FR-P6 (P1)** Recent SPCX headlines (best-effort, via Yahoo Finance search) shown alongside
+  the filings/macro data, when available. Not a mock fallback if empty — Yahoo's news search can
+  legitimately return zero results (or fail the cookie/crumb handshake independently of the price
+  history endpoint), and the card simply doesn't render rather than fabricating headlines.
 
 See spec.md §5/§6 (`spacex_case_study.py`, `pages/SpacexAnalyticsPage.tsx`) and
 implementation.md Phase 9 for the build record.

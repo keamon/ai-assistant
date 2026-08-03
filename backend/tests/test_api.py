@@ -84,3 +84,48 @@ def test_salesforce_renamed(client):
     assert r.status_code == 200
     names = {a["name"] for a in r.json()["accounts"]}
     assert names == {"Williams-Sonoma, Inc.", "Etsy, Inc.", "Dave Inc.", "Glenbrook Partners"}
+
+
+def test_spacex_analytics_endpoint(client, monkeypatch):
+    from server import main
+
+    fake_payload = {
+        "company": "SpaceX", "ticker": "SPCX", "cik": "0001181412",
+        "index_name": "Nasdaq-100", "index_ticker": "^NDX",
+        "ipo_date": "2026-06-12", "ipo_raise": "~$75B", "ipo_valuation": "~$1.75T",
+        "inclusion_date": "2026-07-06", "timeline": [],
+        "prices": {"spcx": {"source": "live", "prices": []}, "index": {"source": "live", "prices": []}},
+        "metrics": {}, "insights": [], "filings": {"filings": []},
+        "fred": {"series": {}, "yield_curve_10y2y": 0.0}, "bank_impact": [], "news": [],
+    }
+    monkeypatch.setattr(main.spacex_case_study, "get_dashboard_payload", lambda: fake_payload)
+    monkeypatch.setattr(main.llm, "generate_spacex_narrative", lambda payload: "TEST SPACEX NARRATIVE")
+
+    r = client.get("/api/spacex-analytics")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ticker"] == "SPCX"
+    assert body["narrative"] == "TEST SPACEX NARRATIVE"
+
+    # Cached — a second call must not re-invoke the (expensive) payload builder.
+    monkeypatch.setattr(
+        main.spacex_case_study, "get_dashboard_payload",
+        lambda: (_ for _ in ()).throw(AssertionError("should be cached")),
+    )
+    r2 = client.get("/api/spacex-analytics")
+    assert r2.status_code == 200
+    assert r2.json()["narrative"] == "TEST SPACEX NARRATIVE"
+
+
+def test_spacex_analytics_endpoint_live_failure_returns_error(client, monkeypatch):
+    from server import main
+
+    def boom():
+        raise RuntimeError("Yahoo Finance unreachable")
+
+    monkeypatch.setattr(main.spacex_case_study, "get_dashboard_payload", boom)
+    r = client.get("/api/spacex-analytics")
+    assert r.status_code == 200
+    body = r.json()
+    assert "error" in body
+    assert "unavailable" in body["error"].lower()

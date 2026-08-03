@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Technical Specification (SPEC)
 
-> Status: Living document · Version 1.7 · Date: 2026-08-02
+> Status: Living document · Version 1.8 · Date: 2026-08-03
 > Chain: [`ideas.md`](ideas.md) → [`prd.md`](prd.md) → **this spec** → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Scope: the whole solution — agent layer (6 ADK agents) + concierge web app (backend +
 > frontend) + shared mock data/state, plus the deployment path.
@@ -62,12 +62,10 @@ ai_assist/
 ├── Dockerfile .dockerignore .gcloudignore            # Cloud Run build (§11)
 ├── backend/   pyproject.toml, uv.lock, README.md, .env (gitignored — FRED_API_KEY),
 │              server/{main,agent,tools,logic,store,seed,mock_data,llm,__init__}.py,
-│              server/{market_data,fred_data,spacex_reference_data}.py
-│              (server/spacex_case_study.py is the target design — see PRD §6.8)
+│              server/{market_data,fred_data,spacex_reference_data,spacex_case_study}.py
 └── frontend/  package.json, vite.config.ts, src/{App,api,types,styles,richText}.tsx/ts,
                src/components/*, src/tabs/*, src/pages/*, src/styles/*.css,
                src/lib/caseStudyReportPdf.ts, src/hooks/useFreshTracker.ts
-               (src/pages/SpacexAnalyticsPage.tsx is the target design — see PRD §6.8)
 ```
 
 ## 3. Model configuration
@@ -203,16 +201,15 @@ Given attendees, date, window, optional `min_capacity`:
   cookie/crumb handshake needed, unlike the quote endpoint) for daily close-price history.
   Live-only (raises on failure) — callers with a specific ticker in mind supply their own mock
   fallback, since the generic `mock_data` fixtures don't carry time series.
-- **`spacex_case_study.py`** *(target design — not yet built on this branch; built once
-  2026-08-02 and removed again to keep this a clean demo starting point — see the PRD §6.8
-  callout. The reference data it imports, `spacex_reference_data.py`, already exists, including
+- **`spacex_case_study.py`** *(built 2026-08-03 — see the PRD §6.8 callout. Built on top of the
+  reference data in `spacex_reference_data.py`, which already existed, including
   `IPO_RAISE`/`IPO_VALUATION`.)* — the **SpaceX (NASDAQ: SPCX) index-inclusion
   market-intelligence dashboard**, a self-contained case study independent of the FinTechCo
   customer domain (`mock_data.py`/`seed.py`). SpaceX IPO'd 2026-06-12 (ticker `SPCX`, CIK
   `0001181412`) and was fast-tracked into the Nasdaq-100 on 2026-07-06 — real, dated facts
   (reference dates/CIK verified against sec.gov and public reporting as of 2026-07-28;
-  live-verified again against data.sec.gov and Yahoo Finance's chart API on 2026-08-02, both
-  reachable and consistent with the curated reference data).
+  live-verified again against data.sec.gov and Yahoo Finance's chart API on both 2026-08-02 and
+  2026-08-03, reachable and consistent with the curated reference data each time).
   - 🔴 **Live-only, no mock/fixture fallback** — per CLAUDE.md's "No mock data" policy for new
     live-data integrations (added 2026-08-02), this module does **not** fall back to
     `spacex_reference_data.py`'s baked price/filing snapshot the way the pre-existing
@@ -244,8 +241,11 @@ Given attendees, date, window, optional `min_capacity`:
     wealth/private banking, corporate banking, risk management), with 1-2 points referencing
     the computed metrics.
   - `get_dashboard_payload()` — assembles everything (`timeline`, `prices`, `metrics`,
-    `insights`, `filings`, `fred`, `bank_impact`) for the API/PDF. Raises if live SEC/Yahoo data
-    is unavailable.
+    `insights`, `filings`, `fred`, `bank_impact`, `news`) for the API/PDF. Raises if live
+    SEC/Yahoo data is unavailable. `news` is best-effort SPCX headlines via
+    `market_data._yahoo_news` — `[]` on failure (or when `DEMO_DISABLE_LIVE_MARKET` is set) is a
+    legitimate "no headlines" result, not a fabricated fallback, same as `market_data.py`'s own
+    best-effort `next_earnings_date`/`news` fields.
   - `llm.generate_spacex_narrative(payload)` — 2-3 paragraph analyst narrative from the
     computed metrics, degrading to `payload["insights"]` (joined into prose) if the Anthropic
     model is unavailable (same try/except-compose pattern as `generate_briefing_narrative` —
@@ -280,7 +280,7 @@ Given attendees, date, window, optional `min_capacity`:
 | GET | `/api/calendar` | → `{date, events}` |
 | GET | `/api/jira` | → `{project, columns, issues}` |
 | GET | `/api/salesforce` | → `{accounts, opportunities, activities}` |
-| GET | `/api/spacex-analytics` *(not yet on this branch — see PRD §6.8)* | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `narrative`) — cached per process, cleared on `/api/reset`; live-only, so a live-data failure should return `{error}` instead of fabricated data |
+| GET | `/api/spacex-analytics` | → SpaceX index-inclusion dashboard payload (`timeline`, `prices: {spcx, index}`, `metrics`, `insights[]`, `filings`, `fred`, `bank_impact[]`, `news[]`, `narrative`) — cached per process, cleared on `/api/reset`; live-only, so a live-data failure returns `{error}` instead of fabricated data |
 | POST | `/api/reset` | → re-seed store, clear sessions |
 | GET | `/api/health` | → `{status, service, date}` |
 | GET | `/` | deployed container only: built SPA (`index.html`); no-op locally without a frontend build |
@@ -288,20 +288,18 @@ Given attendees, date, window, optional `min_capacity`:
 ## 6. Web app — frontend (`frontend`, React + Vite + TS)
 
 - **Routing (`App.tsx`):** a dependency-free **hash router** (listens to `hashchange`).
-  Default renders the assistant app; `#/jira` and `#/salesforce` render standalone full-page
-  views (no assistant chrome), opened in a **new browser tab** via header buttons
-  (`window.open('#/jira','_blank')`). Hash routing keeps deep links / static hosting simple.
-  *(`#/spacex` is not yet wired up on this branch — see PRD §6.8.)*
-- **`pages/SpacexAnalyticsPage.tsx`** *(target design — not yet built on this branch)* — would
-  fetch `/api/spacex-analytics` once on mount and render the analyst narrative, stat tiles,
-  indexed price chart, timeline, FRED macro tiles, SEC filings list, "Impact on bank operations"
-  card grid, and a "Download PDF report" button (`lib/caseStudyReportPdf.
-  downloadCaseStudyReport`), showing a clear error card (no fabricated numbers) if the endpoint
-  returns `{error}`. Only pass the IPO and index-inclusion dates as chart markers (not every
-  timeline event — a denser marker set overlaps its own labels), and use a short common company
-  name like "SpaceX" (not the full SEC legal entity name) when building the PDF report object —
-  its chart legend has a fixed-width column and a long name overlaps the second series label.
-  Two components already exist and are ready to reuse:
+  Default renders the assistant app; `#/jira`, `#/salesforce`, and `#/spacex` render standalone
+  full-page views (no assistant chrome), opened in a **new browser tab** via header buttons
+  (`window.open('#/jira','_blank')`, etc.). Hash routing keeps deep links / static hosting simple.
+- **`pages/SpacexAnalyticsPage.tsx`** — fetches `/api/spacex-analytics` once on mount and renders
+  the analyst narrative, stat tiles, indexed price chart, timeline, FRED macro tiles, SEC filings
+  list, a recent-news card (hidden if empty), an "Impact on bank operations" card grid, and a
+  "Download PDF report" button (`lib/caseStudyReportPdf.downloadCaseStudyReport`), showing a
+  clear error card (no fabricated numbers) if the endpoint returns `{error}`. Only the IPO and
+  index-inclusion dates are passed as chart markers (not every timeline event — a denser marker
+  set overlaps its own labels), and a short common company name ("SpaceX", not the full SEC legal
+  entity name) is used when building the PDF report object — its chart legend has a fixed-width
+  column and a long name overlaps the second series label. Two components were reused as-is:
   - `components/IndexedPriceChart.tsx` — a generic, reusable 2-series indexed-line-chart (no
     charting library, built per the dataviz skill's method: single axis, both series rebased to
     100 at a shared start date, validated categorical color pair `#2a78d6`/`#eb6834`, legend +

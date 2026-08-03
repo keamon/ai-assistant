@@ -17,6 +17,11 @@
 .spx-source-tag.live { background: var(--green-bg); color: var(--green); }
 .spx-source-tag.mock { background: #eef2f6; color: var(--ink-2); }
 
+/* ─── Layout ────────────────────────────────────────────────── */
+.spx-two-col { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
+.spx-side-col { display: flex; flex-direction: column; gap: 18px; }
+@media (max-width: 900px) { .spx-two-col { grid-template-columns: 1fr; } }
+
 /* ─── Timeline ──────────────────────────────────────────────── */
 .spx-timeline { display: flex; flex-direction: column; }
 .spx-tl-item { display: flex; gap: 14px; position: relative; padding-bottom: 18px; }
@@ -82,3 +87,11 @@
 .spx-narrative { font-size: 13.5px; line-height: 1.65; color: var(--ink); }
 .spx-narrative p { margin: 0 0 10px; }
 .spx-narrative p:last-child { margin-bottom: 0; }
+
+/* ─── News ──────────────────────────────────────────────────── */
+.spx-news { display: flex; flex-direction: column; gap: 0; }
+.spx-news-item { padding: 9px 0; border-bottom: 1px solid var(--line); }
+.spx-news-item:last-child { border-bottom: none; }
+.spx-news-headline { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 13px; }
+.spx-news-headline:hover { text-decoration: underline; }
+.spx-news-meta { color: var(--ink-3); font-size: 11.5px; margin-top: 3px; }
