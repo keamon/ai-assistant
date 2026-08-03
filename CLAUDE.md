@@ -31,6 +31,26 @@ without the matching doc update is incomplete.
 When asked to "change X" in code, the expected deliverable is: **code + prd.md + spec.md +
 implementation.md**, consistent with each other.
 
+## 🔴 No mock data when building this project
+
+When implementing or extending a **live-data integration** (SEC EDGAR, Yahoo Finance/market
+data, FRED, or anything like them), **do not fall back to mock/fixture data**. If a live call
+fails, times out, needs a credential you don't have, or otherwise doesn't work, **stop and ask
+the user** instead of silently returning fixture data — there's no reason to fake it when the
+real source is reachable.
+
+- This does **not** cover the FinTechCo customer-domain demo data (`mock_data.py`/`seed.py`,
+  the Jira/Salesforce boards, room bookings, etc.) — that data has no live counterpart by
+  design and is the intended source of truth for the demo, not a fallback.
+- `market_data.py`'s existing customer-intelligence functions (`get_sec_filings`,
+  `get_stock_snapshot`, `get_price_history`, used by the FinTechCo briefing/meeting-prep
+  features) currently have a live/mock fallback via `DEMO_DISABLE_LIVE_MARKET=1` and
+  `mock_data.py` fixtures — that predates this rule and is untouched; don't rip it out
+  unprompted, but don't add new fallbacks elsewhere, and flag it to the user before extending
+  those functions further.
+- If you can't verify live behavior in the current environment (no network, no API key), say
+  so plainly and ask, rather than quietly demoing on fixtures.
+
 ## Doc chain
 
 ```
@@ -99,6 +119,10 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}
 - Both suites run in CI on every PR and push to main (`.github/workflows/ci.yml`).
 - Verify runtime behavior end-to-end (drive the flow), not just imports/tests, for nontrivial
   changes — e.g. `uvicorn` + `curl /api/health`, `/api/reset`, `/api/briefing`.
+- For a **new** live-only integration built under the "No mock data" policy above (no
+  `DEMO_DISABLE_LIVE_MARKET` fallback to lean on), keep CI hermetic by monkeypatching the
+  live-call seam directly in tests, and verify manually against the real API too (not just that
+  tests pass) before calling it done.
 
 ## Deployment (approval-gated)
 
