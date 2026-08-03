@@ -62,10 +62,10 @@ ideas.md (brainstorm) → prd.md (product requirements) → spec.md (technical s
 
 ```
 backend/   server/{main,agent,tools,logic,store,seed,mock_data,llm}.py  # FastAPI + concierge agent + seed/mock data
-           server/{market_data,fred_data,spacex_reference_data}.py      # live/reference market-data helpers
-  tests/   test_{api,logic,seed,market_data}.py                        # pytest (see Testing below)
+           server/{market_data,fred_data,spacex_reference_data,spacex_case_study}.py  # live/reference market-data + SpaceX case study
+  tests/   test_{api,logic,seed,market_data,spacex_case_study}.py       # pytest (see Testing below)
   pyproject.toml
-frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}  # React + Vite + TS (4 tabs)
+frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}  # React + Vite + TS (assistant + Jira/Salesforce/SpaceX pages)
 ```
 
 (The 6 standalone ADK agent folders were removed — see "What this repo is" above.)
@@ -92,6 +92,9 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}
 
 - Model: **`claude-haiku-4-5-20251001`** (Claude Haiku 4.5), called directly via the
   **Anthropic API** — `ANTHROPIC_API_KEY` in `backend/.env` (gitignored, never committed).
+  `backend/.env` also holds `FRED_API_KEY`. Both are populated in the **main checkout**'s
+  `backend/.env` — see the 🔴 worktree note under "Run it locally" below before concluding
+  either key is missing.
 - **`agent.py`** wires the concierge `Agent`'s model via `google.adk.models.lite_llm.LiteLlm(
   model="anthropic/claude-haiku-4-5-20251001")` — requires the `litellm` + `anthropic`
   packages (added as direct dependencies in `pyproject.toml`; deliberately **not**
@@ -109,12 +112,25 @@ frontend/  src/{App,api,types}.tsx  src/{tabs,components,pages,hooks,lib,styles}
   frontend `cd frontend && npm install && npm run dev` → http://localhost:5173
   (Vite proxies `/api` → :8000). Chat and the auto-generated narrative/prep both need
   `ANTHROPIC_API_KEY` set (in `backend/.env`); other read endpoints don't.
+- 🔴 **Isolated worktree setup step (always do this first):** `backend/.env` is gitignored, so a
+  freshly created git worktree for this repo does **not** get a copy of it — before running the
+  backend in a worktree, copy it from the main checkout: `cp <main-checkout-path>/backend/.env
+  backend/.env` (from the worktree's `backend/` dir). Skipping this isn't a code bug — it just
+  means `FRED_API_KEY`/`ANTHROPIC_API_KEY` are absent for that process, so FRED data, the
+  briefing/prep narratives, and any new LLM-generated narrative (e.g. the SpaceX case study)
+  will all silently take their offline/composed-fallback path. Don't conclude a key is "unset"
+  from a worktree alone, and never check a key's value with a grep/pattern that stops at `=`
+  (e.g. `grep -o "^[A-Z_]*="` — matches the key name whether or not a value follows, and always
+  *looks* empty); measure the value's length instead
+  (`awk -F= '$1=="KEY_NAME"{print length($2)}' backend/.env`) without printing the secret.
 
 ## Testing
 
 - Backend: `cd backend && uv run pytest` (`backend/tests/`: `test_api.py`, `test_logic.py`,
-  `test_seed.py`, `test_market_data.py`). Hermetic — `DEMO_DISABLE_LIVE_MARKET=1` forces
-  `market_data.py`/`fred_data.py` to fixtures, so no live model calls or network are needed.
+  `test_seed.py`, `test_market_data.py`, `test_spacex_case_study.py`). Hermetic —
+  `DEMO_DISABLE_LIVE_MARKET=1` forces `market_data.py`/`fred_data.py` to fixtures, so no live
+  model calls or network are needed; `test_spacex_case_study.py` has no such env-var fallback
+  (per the "No mock data" policy below) and instead monkeypatches the live-call seams directly.
 - Frontend: `npm run test` (vitest) + `npm run build` (tsc + vite) is the smoke gate.
 - Both suites run in CI on every PR and push to main (`.github/workflows/ci.yml`).
 - Verify runtime behavior end-to-end (drive the flow), not just imports/tests, for nontrivial

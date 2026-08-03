@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Product Requirements Document (PRD)
 
-> Status: Living document · Version 1.6 · Date: 2026-08-01
+> Status: Living document · Version 1.7 · Date: 2026-08-02
 > Chain: [`ideas.md`](ideas.md) → **this PRD** → [`spec.md`](spec.md) → [`implementation.md`](implementation.md) → code · Conventions: [`CLAUDE.md`](CLAUDE.md)
 > Owner: FinTechCo AI Platform team
 > ⚠️ Keep in sync with code (see CLAUDE.md): user-facing behavior / scope / requirement changes land here.
@@ -188,12 +188,14 @@ Requirements use **P0** (must, v1), **P1** (should, near-term), **P2** (roadmap)
   deployable; their capabilities are progressively surfaced in the concierge.
 
 ### 6.8 SpaceX index-inclusion market-intelligence dashboard (target spec — not yet built on this branch)
-> 🎬 **Demo starting point (2026-07-29):** this branch intentionally does NOT implement §6.8 yet.
-> It keeps the reusable pieces a build needs — `server/spacex_reference_data.py` (pre-verified
-> real facts), `server/fred_data.py`, `market_data.get_price_history`,
+> 🎬 **Demo starting point:** this branch intentionally does NOT implement §6.8 yet. It keeps
+> the reusable pieces a build needs — `server/spacex_reference_data.py` (pre-verified real facts,
+> including `IPO_RAISE`/`IPO_VALUATION`), `server/fred_data.py`, `market_data.get_price_history`,
 > `components/IndexedPriceChart.tsx`, and `lib/caseStudyReportPdf.ts` — so the feature below can
-> be built live from a short prompt. The fully-built, tested, documented version lives on
-> `feature/spacex-analytics-dashboard`.
+> be built live from a short prompt. It was built once already (2026-08-02) and removed again
+> afterward to keep this branch a clean starting point for the next rehearsal — the lessons from
+> that build are folded into the requirements below and into spec.md/implementation.md, so the
+> next build starts from a better-informed spec instead of re-deriving them from scratch.
 
 A standalone analytics case study, independent of the FinTechCo demo-customer domain: SpaceX
 (NASDAQ: SPCX) IPO'd 2026-06-12 and was fast-tracked into the Nasdaq-100 on 2026-07-06 under a
@@ -201,22 +203,45 @@ A standalone analytics case study, independent of the FinTechCo demo-customer do
 - **FR-P1 (P0)** Render as a **separate full page**, opened in a **new browser tab** (same
   pattern as Jira/Salesforce), reachable via a "SpaceX Analysis ↗" header button.
 - **FR-P2 (P0)** Combine three live data sources — **SEC EDGAR** (SpaceX's IPO/listing filings:
-  S-1, 424B4, 8-A12B, S-8, 8-K), **Yahoo Finance** (SPCX + Nasdaq-100 daily price history), and
-  **FRED** (fed funds, 10Y/2Y Treasury, CPI YoY, unemployment) — each live with a graceful
-  mock/offline fallback tagged `source: "live"|"mock"`, matching the existing market-data
-  convention (§6.2).
+  S-1, S-1/A, 424B4, 8-A12B, S-8, 8-K), **Yahoo Finance** (SPCX + Nasdaq-100 daily price history),
+  and **FRED** (fed funds, 10Y/2Y Treasury, CPI YoY, unemployment). SEC/Yahoo must be
+  **live-only, no mock fallback** — per CLAUDE.md's "No mock data" policy for new live-data
+  integrations, this applies to the new `spacex_case_study.py` module specifically (both SEC
+  EDGAR and Yahoo Finance were confirmed live and reachable from this dev environment on
+  2026-08-02 — CIK `0001181412` resolves to "SPACE EXPLORATION TECHNOLOGIES CORP" / `SPCX`).
+  `fred_data.py`'s pre-existing live/mock fallback (`source: "live"|"mock"`) predates the policy
+  and is reused unchanged — it legitimately still shows `"mock"` if `FRED_API_KEY` is absent from
+  wherever the process is actually running (see the worktree note below — this is very likely an
+  environment issue, not something to add a new fallback for). If SEC/Yahoo data is unavailable,
+  the endpoint and page should surface a clear error instead of silently substituting fixture
+  data.
+  - 🔴 **Before testing live behavior in a fresh worktree:** copy `backend/.env` from the main
+    checkout first — see CLAUDE.md's "Run it locally" section. A worktree's missing `.env` is
+    expected (gitignored) and will make FRED/the LLM narrative silently fall back — that's an
+    environment gap, not a defect, and shouldn't be diagnosed with a grep pattern that stops at
+    `=` (always reads as "empty" regardless of the real value — measure the value's length
+    instead).
 - **FR-P3 (P0)** An indexed price chart (SPCX vs. Nasdaq-100, both rebased to 100 at the IPO
   date) with IPO/index-inclusion event markers, hover crosshair+tooltip, and a table-view
   fallback — built per the dataviz skill's method (single axis, validated categorical color
-  pair, legend + direct labels, accessible hover layer).
+  pair, legend + direct labels, accessible hover layer). Pass only the IPO and index-inclusion
+  dates as chart markers (not every timeline event) — a denser marker set overlaps its own labels.
 - **FR-P4 (P0)** A data-driven event-study narrative (deterministic composed insights, with an
   optional LLM-generated version that degrades to the composed insights if the model is
   unavailable) and a categorized **"Impact on bank operations"** analysis (equity capital
   markets, index-fund/ETF flows, prime brokerage & securities-based lending, wealth/private
-  banking, corporate banking, risk management).
+  banking, corporate banking, risk management). Pass every concrete dollar figure the narrative
+  prompt might need (e.g. `IPO_RAISE`/`IPO_VALUATION`) explicitly — an LLM asked to discuss an
+  IPO's size without being given the raise amount will invent one, and will sometimes add a
+  title/heading line even when told not to (strip a leading `#`-prefixed line defensively).
 - **FR-P5 (P0)** A **downloadable PDF report** generated client-side (no server round-trip)
   from the same data the dashboard renders, covering key metrics, the chart, the narrative,
-  timeline, filings, macro snapshot, and bank-impact analysis.
+  timeline, filings, macro snapshot, and bank-impact analysis. Use a short common company name
+  (e.g. "SpaceX", not the full SEC legal entity name) — the PDF chart legend has a fixed-width
+  column and a long name overlaps the second series label.
+
+See spec.md §5/§6 (`spacex_case_study.py`, `pages/SpacexAnalyticsPage.tsx`) and
+implementation.md Phase 9 for the build record.
 
 ## 7. UX & surfaces
 
