@@ -191,3 +191,51 @@ Relevant documents:
                 {"question": "What are next steps and timelines?", "answer": "Confirm owners and dates before close."},
             ],
         }
+
+
+# ─── SpaceX index-inclusion case study narrative ────────────────────────────
+
+def generate_spacex_narrative(payload: dict) -> str:
+    """2-3 paragraph analyst narrative for the SpaceX index-inclusion dashboard.
+
+    Degrades to ``payload["insights"]`` (joined into prose) if the Anthropic
+    model is unavailable — a graceful-LLM-degradation fallback, not a
+    live-market-data mock, so it's unaffected by the "No mock data" policy.
+    Every concrete dollar figure the prompt might need is passed explicitly
+    (an LLM asked to discuss IPO size without the real raise amount will
+    invent one), and a leading ``#``-prefixed line is stripped defensively —
+    "no title header" in the prompt doesn't reliably stop the model from
+    adding one, and the frontend's renderRich() doesn't support headings.
+    """
+    m = payload.get("metrics", {})
+    insights = payload.get("insights", [])
+    prompt = f"""You are a market-intelligence analyst at FinTechCo, a digital payments company
+with a commercial banking division, writing for internal bankers who need to understand a
+newsworthy IPO and index-inclusion event. Use ONLY the facts given below — do not invent or
+estimate any dollar figure, percentage, or date that isn't provided.
+
+Facts:
+- Company: SpaceX (NASDAQ: {payload.get('ticker')}), CIK {payload.get('cik')}
+- IPO date: {payload.get('ipo_date')}; offer price ${m.get('ipo_price')}
+- IPO raise: {payload.get('ipo_raise')}; implied valuation: {payload.get('ipo_valuation')}
+- First-day close: ${m.get('first_close')} on {m.get('first_close_date')}
+- Peak price: ${m.get('peak_price')} on {m.get('peak_date')}
+- Latest price: ${m.get('latest_price')} on {m.get('latest_date')} ({m.get('spcx_since_ipo_pct')}% vs. offer price)
+- {payload.get('index_name')} fast-track inclusion date: {payload.get('inclusion_date')}
+- {payload.get('index_name')} return over the same period since IPO: {m.get('ndx_since_ipo_date_pct')}%
+- SPCX excess return vs. the index since IPO: {m.get('excess_return_since_ipo_pct')} percentage points
+
+Write a 2-3 paragraph narrative (150-220 words) covering: the IPO and its size, the fast-tracked
+index inclusion and what drove it, and what the price action since implies about index-fund-driven
+demand. Do NOT include a title, heading, or '#'/'##' line of any kind before it — start directly
+with the first sentence of the narrative.
+"""
+    try:
+        text = _generate(prompt)
+        lines = text.split("\n")
+        while lines and lines[0].strip().startswith("#"):
+            lines.pop(0)
+        cleaned = "\n".join(lines).strip()
+        return cleaned or " ".join(insights)
+    except Exception:
+        return " ".join(insights)

@@ -8,6 +8,7 @@ import type {
   Room,
   StockSnapshot,
   SecFilingsResult,
+  SpacexAnalytics,
 } from "./types";
 
 async function get<T>(path: string): Promise<T> {
@@ -34,6 +35,7 @@ export const api = {
   doc: (docId: string) => get<DocContent>(`/api/doc/${encodeURIComponent(docId)}`),
   stock: (query: string) => get<StockSnapshot>(`/api/stock/${encodeURIComponent(query)}`),
   sec: (query: string) => get<SecFilingsResult>(`/api/sec/${encodeURIComponent(query)}`),
+  spacexAnalytics: () => get<SpacexAnalytics>("/api/spacex-analytics"),
   assignRoom: (body: {
     attendees: string[];
     date: string;

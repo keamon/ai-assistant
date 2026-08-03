@@ -225,3 +225,104 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
 }
+
+// ─── SpaceX index-inclusion analytics dashboard ─────────────────────────────
+
+export interface SpxPricePoint {
+  date: string;
+  close: number;
+}
+
+export interface SpxPriceSeries {
+  source: "live" | "mock";
+  prices: SpxPricePoint[];
+}
+
+export interface SpxTimelineEvent {
+  date: string;
+  label: string;
+  kind: "filing" | "market" | "index";
+  detail: string;
+}
+
+export interface SpxMetrics {
+  ipo_price?: number;
+  ipo_date?: string;
+  first_close?: number;
+  first_close_date?: string;
+  peak_price?: number;
+  peak_date?: string;
+  latest_price?: number;
+  latest_date?: string;
+  inclusion_date?: string;
+  inclusion_price?: number;
+  spcx_since_inclusion_pct?: number;
+  spcx_since_ipo_pct?: number;
+  ndx_since_ipo_date_pct?: number;
+  excess_return_since_ipo_pct?: number;
+}
+
+export interface SpxFredSeriesPoint {
+  label: string;
+  units: string;
+  value: number;
+  prior?: number;
+  date: string;
+}
+
+export interface SpxFred {
+  as_of?: string;
+  source?: "live" | "mock";
+  series: Record<string, SpxFredSeriesPoint>;
+  yield_curve_10y2y: number;
+}
+
+export interface SpxBankImpactSection {
+  title: string;
+  points: string[];
+}
+
+export interface SpxFiling {
+  form: string;
+  filed: string;
+  accession?: string;
+  description: string;
+  url?: string;
+}
+
+export interface SpxFilings {
+  company?: string;
+  ticker?: string;
+  cik?: string;
+  source?: "live" | "mock";
+  filings: SpxFiling[];
+}
+
+export interface SpxNewsItem {
+  headline: string;
+  source?: string;
+  date?: string;
+  url?: string;
+}
+
+export interface SpacexAnalytics {
+  company: string;
+  ticker: string;
+  cik: string;
+  index_name: string;
+  index_ticker: string;
+  ipo_date: string;
+  ipo_raise: string;
+  ipo_valuation: string;
+  inclusion_date: string;
+  timeline: SpxTimelineEvent[];
+  prices: { spcx: SpxPriceSeries; index: SpxPriceSeries };
+  metrics: SpxMetrics;
+  insights: string[];
+  filings: SpxFilings;
+  fred: SpxFred;
+  bank_impact: SpxBankImpactSection[];
+  news: SpxNewsItem[];
+  narrative?: string;
+  error?: string;
+}

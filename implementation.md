@@ -1,6 +1,6 @@
 # FinTechCo Employee Digital Assistant — Implementation Plan & Checklist
 
-> Status: Living document · Version 1.10 · Date: 2026-08-02
+> Status: Living document · Version 1.11 · Date: 2026-08-03
 > Upstream: [`prd.md`](prd.md) · [`spec.md`](spec.md) · Convention: [`CLAUDE.md`](CLAUDE.md)
 >
 > Purpose: bridge spec → code. Track what's built, what's left, and the running backlog.
@@ -472,77 +472,82 @@ two UI/copy cleanups the user asked for directly (no "mock" label, no "Good morn
 
 ---
 
-## Phase 9 — SpaceX index-inclusion analytics dashboard  🎬 (demo starting point on this branch)
+## Phase 9 — SpaceX index-inclusion analytics dashboard  ✅ (built 2026-08-03)
 
-> This branch (`demo/spacex-live-build-start`, currently living on `main` — see
-> [[project_spacex_live_demo_branch]] in memory) is a **deliberately incomplete** starting point
-> for a timed live-build demo. It was built successfully once already, end-to-end, on
-> 2026-08-02, then **deliberately removed again** afterward so this stays a clean starting point
-> for the next rehearsal (regression-checked after that removal: 43/43 backend tests, 5/5
-> frontend tests, both builds clean).
+> This feature was built twice on this branch: once on 2026-08-02 as a live-build rehearsal (then
+> deliberately removed again to keep the branch a clean demo starting point — see
+> [[project_spacex_live_demo_branch]] in memory), and again on 2026-08-03 in response to a direct
+> user request to add the analytics page for real — this second build is the one now on the
+> branch and is meant to stay.
 >
-> **Kept on this branch** (reusable infra + pre-verified real data, so the live build has
-> nothing to research and nothing to fetch over the network):
+> **Reusable infra + pre-verified real data this build was built on top of** (already on the
+> branch before this build started):
 > - `backend/server/spacex_reference_data.py` — real IPO/index-inclusion timeline, SPCX/Nasdaq-100
 >   price history, curated SEC filings (all captured live on 2026-07-28), plus `IPO_RAISE`/
->   `IPO_VALUATION` constants (added 2026-08-02) — pass these explicitly into any LLM narrative
->   prompt; without them, the model will invent its own (wrong) figure.
-> - `backend/server/fred_data.py`, `market_data.get_price_history()` — generic, already reusable.
+>   `IPO_VALUATION` constants — passed explicitly into the LLM narrative prompt; without them, the
+>   model will invent its own (wrong) figure.
+> - `backend/server/fred_data.py`, `market_data.get_price_history()` — generic, reused unchanged.
 > - `frontend/src/components/IndexedPriceChart.tsx` — generic 2-series indexed chart, built per
 >   the `dataviz` skill (validated color pair `#2a78d6`/`#eb6834`, hover tooltip, table view).
 > - `frontend/src/lib/caseStudyReportPdf.ts` — generic client-side PDF report generator (`jspdf`).
 > - `CLAUDE.md`'s "No mock data" policy clarification and the mandatory worktree `.env`-copy
->   setup step (see "Run it locally") — added 2026-08-02, kept permanently.
-> - The FinTechCo rebrand (Phase 8) underneath it all.
+>   setup step (see "Run it locally").
 >
-> **Removed, to be rebuilt live:** `backend/server/spacex_case_study.py` (event-study metrics +
-> insights + bank-impact business logic), the `/api/spacex-analytics` endpoint and its store
-> caching, `llm.generate_spacex_narrative`, and `frontend/src/pages/SpacexAnalyticsPage.tsx`
-> (+ its `#/spacex` route/nav button and the `SpacexAnalytics`/`PriceSeries`/etc. types).
+> **Built this session:** `backend/server/spacex_case_study.py` (event-study metrics + insights +
+> bank-impact business logic + a best-effort SPCX news lookup), the `/api/spacex-analytics`
+> endpoint and its store caching, `llm.generate_spacex_narrative`, and
+> `frontend/src/pages/SpacexAnalyticsPage.tsx` (+ its `#/spacex` route/nav button and the
+> `SpacexAnalytics`/`SpxPriceSeries`/etc. types).
 >
-> **Lessons from the 2026-08-02 build** (also in memory — [[feedback_env_var_check]],
-> [[feedback_worktree_gitignored_env]], [[feedback_spacex_build_gotchas]],
-> [[project_spacex_no_mock_data_architecture]] — but folded into PRD §6.8 / spec.md §5-6 too, so
-> reading the docs surfaces them without needing memory):
-> - `spacex_case_study.py` must be **live-only, no mock fallback** for SEC/Yahoo (CLAUDE.md's
->   "No mock data" policy applies to this new module, not to `market_data.py`/`fred_data.py`'s
->   pre-existing fallbacks, which stay untouched). Both SEC EDGAR (CIK `0001181412`) and Yahoo
->   Finance were confirmed live and reachable from this dev environment on 2026-08-02.
-> - Copy `backend/.env` into a fresh worktree **before** testing — otherwise FRED/the LLM
->   narrative will silently (and correctly) fall back, which can look like a bug but isn't. Now a
->   documented mandatory step in `CLAUDE.md`.
-> - Pass `IPO_RAISE`/`IPO_VALUATION` into the narrative prompt explicitly, and defensively strip
->   a leading `#`-prefixed line from the model's response — see spec.md's `spacex_case_study.py`
->   entry for details.
-> - Trim `IndexedPriceChart` markers to just the IPO + inclusion dates (not every timeline
->   event), and use a short company name like "SpaceX" (not the SEC legal name) for the PDF
->   report — both avoid label-overlap bugs.
-> - A hash-router page doesn't remount on re-navigating to the identical hash — hard-reload the
->   browser after restarting the backend during manual QA, don't just re-navigate.
-> Regression-checked after the second removal: 43/43 backend tests, 5/5 frontend tests, both
-> builds clean.
+> **Lessons applied from the 2026-08-02 rehearsal build** (also in memory —
+> [[feedback_env_var_check]], [[feedback_worktree_gitignored_env]],
+> [[feedback_spacex_build_gotchas]], [[project_spacex_no_mock_data_architecture]]):
+> - `spacex_case_study.py` is **live-only, no mock fallback** for SEC/Yahoo (CLAUDE.md's "No mock
+>   data" policy applies to this new module, not to `market_data.py`/`fred_data.py`'s pre-existing
+>   fallbacks, which stay untouched). Both SEC EDGAR (CIK `0001181412`) and Yahoo Finance were
+>   confirmed live and reachable from this dev environment again on 2026-08-03.
+> - `backend/.env` was copied into this worktree before testing, so FRED + the LLM narrative were
+>   verified against genuinely live data, not the offline fallback.
+> - `IPO_RAISE`/`IPO_VALUATION` are passed into the narrative prompt explicitly, and a leading
+>   `#`-prefixed line is stripped defensively from the model's response — see spec.md's
+>   `spacex_case_study.py` entry for details.
+> - `IndexedPriceChart` markers are trimmed to just the IPO + inclusion dates (not every timeline
+>   event), and the PDF report uses the short company name "SpaceX" (not the SEC legal name) —
+>   both avoid label-overlap bugs. Verified in the generated PDF: legend reads "SpaceX (SPCX)" /
+>   "Nasdaq-100" with no overlap.
+> - Yahoo's news-search endpoint hit a 401 on its cookie/crumb handshake in this dev environment
+>   (independent of the chart-API price-history endpoint, which worked fine) — `news` legitimately
+>   came back `[]`; the page hides the news card when empty rather than showing a broken section.
+> Verified end-to-end against live data: 56/56 backend tests, 5/5 frontend tests, both builds
+> clean; `/api/spacex-analytics` returned genuinely live SEC EDGAR/Yahoo Finance/FRED data;
+> rendered page screenshotted; downloaded PDF report inspected page-by-page.
 
-- [ ] `backend/server/spacex_case_study.py` — event-study metrics, insights, bank-impact
+- [x] `backend/server/spacex_case_study.py` — event-study metrics, insights, bank-impact
       business logic, live-only (no mock fallback) per the lessons above.
-- [ ] `llm.generate_spacex_narrative(payload)` in `llm.py` — 2-3 paragraph analyst narrative,
+- [x] `llm.generate_spacex_narrative(payload)` in `llm.py` — 2-3 paragraph analyst narrative,
       degrading to composed insights if the Anthropic API is unavailable.
-- [ ] `store.py` — `spacex_cache`/`spacex_narrative` fields, cleared on `reset()`.
-- [ ] `GET /api/spacex-analytics` in `main.py` — caches the dashboard payload + narrative;
+- [x] `store.py` — `spacex_cache`/`spacex_narrative` fields, cleared on `reset()`.
+- [x] `GET /api/spacex-analytics` in `main.py` — caches the dashboard payload + narrative;
       returns `{"error": ...}` on live-data failure rather than a fabricated payload.
-- [ ] `backend/tests/test_spacex_case_study.py` + additions to `test_api.py` — hermetic via
+- [x] `backend/tests/test_spacex_case_study.py` + additions to `test_api.py` — hermetic via
       monkeypatching the live-call seams directly (no `DEMO_DISABLE_LIVE_MARKET` path for this
       module).
-- [ ] `frontend/src/pages/SpacexAnalyticsPage.tsx` — fetches `/api/spacex-analytics` once on
+- [x] `frontend/src/pages/SpacexAnalyticsPage.tsx` — fetches `/api/spacex-analytics` once on
       mount; stat tiles, analyst narrative, `IndexedPriceChart`, timeline, live SEC filings list,
-      FRED macro tiles, six-section bank-impact grid, "Download PDF report" button. Plain-
-      language error card (no fabricated data) if the endpoint returns `{error}`.
-- [ ] `types.ts`/`api.ts` — `SpacexAnalytics` + supporting types, `api.spacexAnalytics()`.
-- [ ] `App.tsx` — `#/spacex` route + "SpaceX Analysis ↗" header button, same
+      recent-news card, FRED macro tiles, six-section bank-impact grid, "Download PDF report"
+      button. Plain-language error card (no fabricated data) if the endpoint returns `{error}`.
+- [x] `types.ts`/`api.ts` — `SpacexAnalytics` + supporting types, `api.spacexAnalytics()`.
+- [x] `App.tsx` — `#/spacex` route + "SpaceX Analysis ↗" header button, same
       `window.open('#/spacex','_blank')` pattern as Jira/Salesforce.
-- [ ] End-to-end verify: `uv run pytest`, `npm run test`, `npm run build`; manually drive
-      `uvicorn` + the Vite dev server (after copying `backend/.env` into the worktree first),
-      confirm `/api/spacex-analytics` returns genuinely live SEC/Yahoo/FRED data, screenshot the
-      rendered page, and download + inspect the generated PDF report.
+- [x] End-to-end verify: `uv run pytest` (56/56), `npm run test` (5/5), `npm run build`; manually
+      drove `uvicorn` + the Vite dev server (after copying `backend/.env` into the worktree),
+      confirmed `/api/spacex-analytics` returns genuinely live SEC/Yahoo/FRED data, screenshotted
+      the rendered page, and downloaded + inspected the generated PDF report.
+
+**Backlog / follow-ups:**
+- Yahoo's news-search cookie/crumb handshake 401'd in this dev environment even though the
+  chart-API price-history endpoint worked fine — worth a closer look if the recent-news card
+  needs to be reliably populated rather than best-effort.
 
 ## Repo hygiene
 
